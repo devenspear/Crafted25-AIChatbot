@@ -2,11 +2,14 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 import { searchEventData } from '@/lib/rag-search';
 import { getSystemPrompt } from '@/lib/system-prompt';
+import { trackMessage, trackResponseTime, trackTokens, trackError } from '@/lib/analytics';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  const startTime = Date.now();
+
   try {
     const { messages } = await req.json();
 
@@ -35,6 +38,9 @@ export async function POST(req: Request) {
       ? lastMessage.content
       : '';
 
+    // Track the message (async, don't block)
+    trackMessage(userQuery, req).catch(console.error);
+
     // Smart search: Only retrieve relevant event data (5KB vs 78KB)
     // This reduces costs by ~93% while maintaining accuracy
     const relevantData = searchEventData(userQuery, 5);
@@ -48,10 +54,22 @@ export async function POST(req: Request) {
       system: systemPrompt,
       messages: messages,
       temperature: 0.7,
+      onFinish: async ({ usage }) => {
+        // Track metrics after completion (async, don't block)
+        const responseTime = Date.now() - startTime;
+
+        Promise.all([
+          trackResponseTime(responseTime),
+          trackTokens(usage.promptTokens, usage.completionTokens),
+        ]).catch(console.error);
+      },
     });
 
     return result.toTextStreamResponse();
   } catch (error) {
+    // Track error (async, don't block)
+    trackError(error as Error).catch(console.error);
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({
       error: 'Failed to process chat request',
