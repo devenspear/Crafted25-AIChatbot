@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 type Message = {
   id: string;
@@ -14,11 +14,17 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-increment version based on git commit SHA
   const version = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
     ? `1.0.${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 7)}`
     : '1.0.dev';
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,12 +141,12 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-stone-50 via-white to-stone-100">
-      {/* Header - Alys Beach inspired white/neutral palette */}
-      <div className="bg-white border-b border-stone-200 shadow-sm p-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-light text-stone-800 tracking-wide">CRAFTED 2025</h1>
-          <p className="text-stone-600 mt-2 font-light">November 12–16 • Alys Beach, Florida</p>
+    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+      {/* iOS-style Header with glassmorphism */}
+      <div className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-3 safe-area-top sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>CRAFTED 2025</h1>
+          <p className="text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
         </div>
       </div>
 
@@ -166,28 +172,34 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
+      {/* Messages Container - iMessage style */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
-          <div className="text-center mt-16 px-4">
-            <h2 className="text-4xl font-light text-stone-700 mb-4">
-              Welcome to Crafted 2025
-            </h2>
-            <p className="text-stone-600 mb-8 font-light max-w-lg mx-auto text-base">
-              A multi-day journey of culinary expression, spirited tastings, and hands-on discovery. Ask me anything about the schedule, experiences, or activities.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          <div className="text-center mt-8 px-4">
+            <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-8 shadow-lg border border-gray-100/50">
+              <h2 className="text-3xl font-serif text-gray-900 mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+                Welcome to Crafted 2025
+              </h2>
+              <p className="text-gray-600 text-base leading-relaxed max-w-md mx-auto">
+                A multi-day journey of culinary expression, spirited tastings, and hands-on discovery.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
               {suggestedQuestions.map((sq, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
-                    console.log('[UI] Suggested question clicked:', sq.question);
                     setInput(sq.question);
                   }}
-                  className="p-5 bg-white border border-stone-200 rounded-sm hover:border-[#004978] hover:shadow-lg transition-all text-left group"
+                  className="backdrop-blur-md bg-white/70 hover:bg-white/90 rounded-2xl p-4 shadow-sm hover:shadow-md border border-gray-100/50 transition-all duration-200 text-left group active:scale-95"
                 >
-                  <p className="font-light text-stone-800 text-lg mb-1 group-hover:text-[#004978]">{sq.emoji} {sq.title}</p>
-                  <p className="text-base text-stone-500 font-light">{sq.question}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{sq.emoji}</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900 text-sm group-hover:text-[#004978] transition-colors">{sq.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{sq.question}</p>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -197,16 +209,16 @@ export default function ChatPage() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-200`}
           >
             <div
-              className={`max-w-[85%] rounded-sm p-4 ${
+              className={`max-w-[75%] sm:max-w-[70%] rounded-3xl px-4 py-3 ${
                 message.role === 'user'
-                  ? 'bg-stone-700 text-white'
-                  : 'bg-white text-stone-800 border border-stone-200 shadow-sm'
+                  ? 'bg-[#004978] text-white shadow-md'
+                  : 'backdrop-blur-md bg-gray-100/80 text-gray-900 border border-gray-200/50'
               }`}
             >
-              <div className="whitespace-pre-wrap font-light leading-relaxed text-base">
+              <div className="whitespace-pre-wrap leading-relaxed text-[15px] sm:text-base">
                 {message.content}
               </div>
             </div>
@@ -214,64 +226,62 @@ export default function ChatPage() {
         ))}
 
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-stone-200 rounded-sm p-4 shadow-sm">
-              <div className="flex items-center space-x-3">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-[#004978] rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-[#004978] rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                  <div className="w-2 h-2 bg-[#004978] rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                </div>
-                <span className="text-sm text-stone-600 font-light animate-pulse">Claude is thinking...</span>
+          <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-200">
+            <div className="backdrop-blur-md bg-gray-100/80 rounded-3xl px-5 py-3.5 border border-gray-200/50">
+              <div className="flex items-center space-x-1.5">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
               </div>
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Form */}
-      <div className="border-t border-stone-200 bg-white p-4 shadow-sm">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-          <div className="flex space-x-3">
-            <input
-              value={input}
-              onChange={(e) => {
-                console.log('[UI] Input changed:', e.target.value);
-                setInput(e.target.value);
-              }}
-              placeholder="Ask about events, schedules, or experiences..."
-              className="flex-1 p-4 border border-stone-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#004978] focus:border-transparent text-stone-800 placeholder-stone-400 bg-white font-light text-base"
-              disabled={isLoading}
-              autoComplete="off"
-            />
+      {/* iOS-style Input Bar with glassmorphism */}
+      <div className="backdrop-blur-xl bg-white/80 border-t border-gray-200/30 px-4 py-3 pb-safe safe-area-bottom">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Message"
+                className="w-full px-4 py-2.5 sm:py-3 rounded-full bg-gray-100/80 border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#004978]/30 focus:border-[#004978]/50 text-gray-900 placeholder-gray-500 text-[16px] transition-all backdrop-blur-sm"
+                disabled={isLoading}
+                autoComplete="off"
+                style={{ fontSize: '16px' }} // Prevents iOS zoom on focus
+              />
+            </div>
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="px-8 py-4 bg-gradient-to-r from-[#004978] to-[#00548E] text-white rounded-sm font-light tracking-wide hover:from-[#003a60] hover:to-[#004978] disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase text-sm shadow-md hover:shadow-lg flex items-center gap-2 group"
+              className={`flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 ${
+                input.trim() && !isLoading
+                  ? 'bg-[#004978] hover:bg-[#003a60] shadow-md'
+                  : 'bg-gray-300 cursor-not-allowed'
+              }`}
+              aria-label="Send message"
             >
-              <span>{isLoading ? 'Sending...' : 'Send'}</span>
               <svg
-                className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
+                className="w-5 h-5 text-white"
+                fill="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             </button>
           </div>
-          {/* Debug info */}
-          <div className="text-xs text-stone-400 mt-2">
-            Status: {isLoading ? 'loading' : 'ready'} | Messages: {messages.length} | Input: {input.length} chars
+
+          {/* Subtle footer */}
+          <div className="text-center mt-2">
+            <p className="text-[10px] text-gray-400">
+              Crafted 2025 v{version} • Claude 3.5 Haiku
+            </p>
           </div>
         </form>
-
-        {/* Footer */}
-        <div className="text-center py-3 border-t border-stone-100 mt-3">
-          <p className="text-xs text-stone-400 font-light">
-            Crafted 2025 AI Assistant v{version} • Powered by Claude 3.5 Haiku
-          </p>
-        </div>
       </div>
     </div>
   );
