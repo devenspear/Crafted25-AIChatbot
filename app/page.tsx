@@ -152,7 +152,7 @@ export default function ChatPage() {
         }}
       >
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>Crafted Compass</h1>
+          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>CRAFTED</h1>
           <p className="text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
         </div>
       </div>
@@ -185,10 +185,10 @@ export default function ChatPage() {
           <div className="text-center mt-8 px-4">
             <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100/50">
               <h2 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                Your Crafted AI
+                Your CRAFTED AI
               </h2>
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
-                Everything <strong>Crafted at Alys Beach • Nov 12–16</strong>. Ask for schedules, Firkin Fête, workshops, Spirited Soirée, and insider tips. <strong>Crafted-only answers—no outside web.</strong>
+                Everything <strong>CRAFTED at Alys Beach • Nov 12–16</strong>. Ask for schedules, Firkin Fête, workshops, Spirited Soirée, and insider tips. <strong>CRAFTED-only answers—no outside web.</strong>
               </p>
             </div>
             <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
