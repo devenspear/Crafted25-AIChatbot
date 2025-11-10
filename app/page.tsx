@@ -258,7 +258,7 @@ export default function ChatPage() {
         {/* Footer */}
         <div className="text-center py-3 border-t border-stone-100 mt-3">
           <p className="text-xs text-stone-400 font-light">
-            Crafted 2025 AI Assistant v{version} • Powered by Claude 3.5 Sonnet
+            Crafted 2025 AI Assistant v{version} • Powered by Claude 3 Opus
           </p>
         </div>
       </div>

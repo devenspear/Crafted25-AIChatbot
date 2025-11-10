@@ -58,13 +58,32 @@ export async function POST(req: Request) {
     }
 
     console.log('[CHAT API] Calling streamText...');
+    console.log('[CHAT API] Model:', 'claude-3-opus-20240229');
+    console.log('[CHAT API] System prompt length:', systemPrompt.length);
+    console.log('[CHAT API] Messages count:', messages.length);
+
     // Messages are already in the correct format: {role, content}
     const result = await streamText({
-      model: anthropic('claude-3-5-sonnet-20241022'),
+      model: anthropic('claude-3-opus-20240229'),
       system: systemPrompt,
       messages: messages,
       temperature: 0.7,
     });
+
+    console.log('[CHAT API] StreamText result type:', typeof result);
+    console.log('[CHAT API] StreamText result keys:', Object.keys(result));
+
+    // Check if there's an error in the result
+    if (result.error) {
+      console.error('[CHAT API] StreamText returned error:', result.error);
+      return new Response(JSON.stringify({
+        error: 'AI model error',
+        details: result.error.message || 'Unknown error'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     console.log('[CHAT API] StreamText completed, returning response');
     return result.toTextStreamResponse();
