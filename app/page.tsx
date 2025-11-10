@@ -1,25 +1,19 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
+
+type Message = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+};
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status, error, clearError } = useChat({
-    api: '/api/chat',
-  });
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  const isLoading = status === 'submitted' || status === 'streaming';
-
-  // Log status changes for debugging
-  useEffect(() => {
-    console.log('[UI] Chat status:', status);
-    console.log('[UI] Messages count:', messages.length);
-    if (error) {
-      console.error('[UI] Chat error:', error);
-    }
-  }, [status, messages.length, error]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,22 +29,84 @@ export default function ChatPage() {
       return;
     }
 
-    try {
-      setLocalError(null);
-      clearError();
-      const userMessage = input;
-      setInput('');
-      console.log('[UI] Sending message:', userMessage);
+    const userMessage = input;
+    setInput('');
+    setError(null);
+    setIsLoading(true);
 
-      await sendMessage({
-        role: 'user',
-        parts: [{ type: 'text', text: userMessage }]
+    // Add user message
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: userMessage,
+    };
+    setMessages(prev => [...prev, userMsg]);
+    console.log('[UI] Added user message:', userMsg);
+
+    try {
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMsg].map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+        signal: abortControllerRef.current.signal,
       });
 
-      console.log('[UI] Message sent successfully');
+      console.log('[UI] Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response body');
+      }
+
+      // Read the stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      const assistantId = (Date.now() + 1).toString();
+
+      // Add empty assistant message
+      setMessages(prev => [...prev, {
+        id: assistantId,
+        role: 'assistant',
+        content: '',
+      }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        assistantContent += chunk;
+
+        // Update assistant message with accumulated content
+        setMessages(prev => prev.map(m =>
+          m.id === assistantId ? { ...m, content: assistantContent } : m
+        ));
+      }
+
+      console.log('[UI] Stream complete, assistant content length:', assistantContent.length);
     } catch (err) {
-      console.error('[UI] Error sending message:', err);
-      setLocalError(err instanceof Error ? err.message : 'Failed to send message');
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('[UI] Request aborted');
+        return;
+      }
+      console.error('[UI] Error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send message');
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -60,8 +116,6 @@ export default function ChatPage() {
     { emoji: '✨', title: 'Workshops', question: 'What workshops are available?' },
     { emoji: '🗓️', title: 'Full Schedule', question: 'Show me the full event schedule' },
   ];
-
-  const displayError = error || localError;
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-stone-50 via-white to-stone-100">
@@ -74,7 +128,7 @@ export default function ChatPage() {
       </div>
 
       {/* Error Display */}
-      {displayError && (
+      {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 mt-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
@@ -83,14 +137,9 @@ export default function ChatPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">
-                {displayError instanceof Error ? displayError.message : String(displayError)}
-              </p>
+              <p className="text-sm text-red-700">{error}</p>
               <button
-                onClick={() => {
-                  clearError();
-                  setLocalError(null);
-                }}
+                onClick={() => setError(null)}
                 className="text-xs text-red-600 underline mt-1"
               >
                 Dismiss
@@ -141,12 +190,7 @@ export default function ChatPage() {
               }`}
             >
               <div className="whitespace-pre-wrap font-light leading-relaxed">
-                {message.parts.map((part, idx) => {
-                  if (part.type === 'text') {
-                    return <span key={idx}>{part.text}</span>;
-                  }
-                  return null;
-                })}
+                {message.content}
               </div>
             </div>
           </div>
@@ -190,7 +234,7 @@ export default function ChatPage() {
           </div>
           {/* Debug info */}
           <div className="text-xs text-stone-400 mt-2">
-            Status: {status} | Messages: {messages.length} | Input: {input.length} chars
+            Status: {isLoading ? 'loading' : 'ready'} | Messages: {messages.length} | Input: {input.length} chars
           </div>
         </form>
       </div>
