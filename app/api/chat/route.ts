@@ -58,13 +58,14 @@ export async function POST(req: Request) {
     }
 
     console.log('[CHAT API] Calling streamText...');
-    console.log('[CHAT API] Model:', 'claude-3-opus-20240229');
+    console.log('[CHAT API] Model:', 'claude-3-5-haiku-20241022');
     console.log('[CHAT API] System prompt length:', systemPrompt.length);
     console.log('[CHAT API] Messages count:', messages.length);
 
     // Messages are already in the correct format: {role, content}
+    // Using Claude 3.5 Haiku for faster response times
     const result = await streamText({
-      model: anthropic('claude-3-opus-20240229'),
+      model: anthropic('claude-3-5-haiku-20241022'),
       system: systemPrompt,
       messages: messages,
       temperature: 0.7,

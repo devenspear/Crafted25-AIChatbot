@@ -170,10 +170,10 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="text-center mt-16 px-4">
-            <h2 className="text-3xl font-light text-stone-700 mb-3">
+            <h2 className="text-4xl font-light text-stone-700 mb-4">
               Welcome to Crafted 2025
             </h2>
-            <p className="text-stone-600 mb-8 font-light max-w-lg mx-auto">
+            <p className="text-stone-600 mb-8 font-light max-w-lg mx-auto text-base">
               A multi-day journey of culinary expression, spirited tastings, and hands-on discovery. Ask me anything about the schedule, experiences, or activities.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
@@ -184,10 +184,10 @@ export default function ChatPage() {
                     console.log('[UI] Suggested question clicked:', sq.question);
                     setInput(sq.question);
                   }}
-                  className="p-5 bg-white border border-stone-200 rounded-sm hover:border-stone-400 hover:shadow-lg transition-all text-left group"
+                  className="p-5 bg-white border border-stone-200 rounded-sm hover:border-[#004978] hover:shadow-lg transition-all text-left group"
                 >
-                  <p className="font-light text-stone-800 text-lg mb-1 group-hover:text-stone-900">{sq.emoji} {sq.title}</p>
-                  <p className="text-sm text-stone-500 font-light">{sq.question}</p>
+                  <p className="font-light text-stone-800 text-lg mb-1 group-hover:text-[#004978]">{sq.emoji} {sq.title}</p>
+                  <p className="text-base text-stone-500 font-light">{sq.question}</p>
                 </button>
               ))}
             </div>
@@ -206,7 +206,7 @@ export default function ChatPage() {
                   : 'bg-white text-stone-800 border border-stone-200 shadow-sm'
               }`}
             >
-              <div className="whitespace-pre-wrap font-light leading-relaxed">
+              <div className="whitespace-pre-wrap font-light leading-relaxed text-base">
                 {message.content}
               </div>
             </div>
@@ -216,10 +216,13 @@ export default function ChatPage() {
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-white border border-stone-200 rounded-sm p-4 shadow-sm">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce [animation-delay:0.1s]"></div>
-                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+              <div className="flex items-center space-x-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-[#004978] rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-[#004978] rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="w-2 h-2 bg-[#004978] rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                </div>
+                <span className="text-sm text-stone-600 font-light animate-pulse">Claude is thinking...</span>
               </div>
             </div>
           </div>
@@ -237,16 +240,24 @@ export default function ChatPage() {
                 setInput(e.target.value);
               }}
               placeholder="Ask about events, schedules, or experiences..."
-              className="flex-1 p-4 border border-stone-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent text-stone-800 placeholder-stone-400 bg-white font-light"
+              className="flex-1 p-4 border border-stone-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#004978] focus:border-transparent text-stone-800 placeholder-stone-400 bg-white font-light text-base"
               disabled={isLoading}
               autoComplete="off"
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="px-8 py-4 bg-stone-700 text-white rounded-sm font-light tracking-wide hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase text-sm"
+              className="px-8 py-4 bg-gradient-to-r from-[#004978] to-[#00548E] text-white rounded-sm font-light tracking-wide hover:from-[#003a60] hover:to-[#004978] disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase text-sm shadow-md hover:shadow-lg flex items-center gap-2 group"
             >
-              {isLoading ? 'Sending...' : 'Send'}
+              <span>{isLoading ? 'Sending...' : 'Send'}</span>
+              <svg
+                className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </button>
           </div>
           {/* Debug info */}
@@ -258,7 +269,7 @@ export default function ChatPage() {
         {/* Footer */}
         <div className="text-center py-3 border-t border-stone-100 mt-3">
           <p className="text-xs text-stone-400 font-light">
-            Crafted 2025 AI Assistant v{version} • Powered by Claude 3 Opus
+            Crafted 2025 AI Assistant v{version} • Powered by Claude 3.5 Haiku
           </p>
         </div>
       </div>
