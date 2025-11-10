@@ -237,6 +237,13 @@ export default function ChatPage() {
             Status: {isLoading ? 'loading' : 'ready'} | Messages: {messages.length} | Input: {input.length} chars
           </div>
         </form>
+
+        {/* Footer */}
+        <div className="text-center py-3 border-t border-stone-100 mt-3">
+          <p className="text-xs text-stone-400 font-light">
+            Crafted 2025 AI Assistant v1.0.0 • Powered by Claude 3.5 Sonnet
+          </p>
+        </div>
       </div>
     </div>
   );
