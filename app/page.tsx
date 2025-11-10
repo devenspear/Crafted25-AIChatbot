@@ -13,6 +13,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -44,6 +45,7 @@ export default function ChatPage() {
     setInput('');
     setError(null);
     setIsLoading(true);
+    setIsFirstLoad(false);
 
     // Add user message
     const userMsg: Message = {
@@ -152,7 +154,7 @@ export default function ChatPage() {
         }}
       >
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>CRAFTED</h1>
+          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>CRAFTED AI</h1>
           <p className="text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
         </div>
       </div>
@@ -184,13 +186,13 @@ export default function ChatPage() {
         {messages.length === 0 && (
           <div className="text-center mt-8 px-4">
             <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100/50">
-              <h2 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                Your CRAFTED AI
-              </h2>
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
                 Everything <strong>CRAFTED at Alys Beach • Nov 12–16</strong>. Ask for schedules, Firkin Fête, workshops, Spirited Soirée, and insider tips. <strong>CRAFTED-only answers—no outside web.</strong>
               </p>
             </div>
+            <p className="text-gray-600 text-sm sm:text-base mb-4 text-center">
+              As your CRAFTED AI I can help with things like:
+            </p>
             <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
               {suggestedQuestions.map((sq, idx) => (
                 <button
@@ -255,7 +257,7 @@ export default function ChatPage() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Try: What's on Saturday after 5?"
+                placeholder={isFirstLoad ? "Try something..." : ""}
                 className="w-full px-4 py-2.5 sm:py-3 rounded-full bg-gray-100/80 border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#004978]/30 focus:border-[#004978]/50 text-gray-900 placeholder-gray-500 text-[16px] transition-all backdrop-blur-sm"
                 disabled={isLoading}
                 autoComplete="off"
