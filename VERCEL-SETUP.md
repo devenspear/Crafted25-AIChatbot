@@ -68,7 +68,7 @@ After adding the environment variable, you need to redeploy:
 
 ```bash
 git commit --allow-empty -m "Trigger redeploy for env vars"
-git push -u origin claude/fix-api-key-configuration-011CUzG2SBmSmNrnRcHDXeD2
+git push origin main
 ```
 
 **Option C: Via Vercel CLI**

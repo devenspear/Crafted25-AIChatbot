@@ -142,6 +142,8 @@ npm start
 
 ## Git Workflow
 
+**IMPORTANT**: All changes must be pushed to the `main` branch only. No feature branches or RAG branches.
+
 ```bash
 # Make changes to code
 # ...
@@ -152,11 +154,18 @@ git add .
 # Commit with descriptive message
 git commit -m "Description of changes"
 
-# Push to GitHub (triggers Vercel deployment)
-git push
+# Push to main branch (triggers Vercel production deployment)
+git push origin main
 
 # Version automatically increments based on commit SHA
+# Changes go live immediately in Vercel production
 ```
+
+### Branch Policy
+- **Main branch only**: All commits push directly to `main`
+- **No feature branches**: No RAG branch, no claude/* branches
+- **Live deployment**: Every push to main deploys to production immediately
+- **Vercel configuration**: Main branch is configured as production branch
 
 ## Notes
 
