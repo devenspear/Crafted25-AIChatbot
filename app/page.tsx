@@ -15,6 +15,11 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Auto-increment version based on git commit SHA
+  const version = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+    ? `1.0.${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 7)}`
+    : '1.0.dev';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('[UI] Form submitted with input:', input);
@@ -253,7 +258,7 @@ export default function ChatPage() {
         {/* Footer */}
         <div className="text-center py-3 border-t border-stone-100 mt-3">
           <p className="text-xs text-stone-400 font-light">
-            Crafted 2025 AI Assistant v1.0.1 • Powered by Claude 3.5 Sonnet
+            Crafted 2025 AI Assistant v{version} • Powered by Claude 3.5 Sonnet
           </p>
         </div>
       </div>
