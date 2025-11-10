@@ -134,10 +134,10 @@ export default function ChatPage() {
   };
 
   const suggestedQuestions = [
-    { emoji: '📅', title: 'Saturday Schedule', question: 'What events are happening on Saturday?' },
-    { emoji: '🍺', title: 'Firkin Fête', question: 'Tell me about the Firkin Fête' },
-    { emoji: '✨', title: 'Workshops', question: 'What workshops are available?' },
-    { emoji: '🗓️', title: 'Full Schedule', question: 'Show me the full event schedule' },
+    { emoji: '🌴', title: 'Saturday Schedule', question: 'What events are unfolding under the palms?' },
+    { emoji: '🍺', title: 'Firkin Fête', question: 'Tell me about the Firkin Fête.' },
+    { emoji: '✨', title: 'Workshops', question: 'What hands-on discoveries await?' },
+    { emoji: '📅', title: 'Full Schedule', question: 'Show me the full event lineup.' },
   ];
 
   return (
@@ -145,7 +145,7 @@ export default function ChatPage() {
       {/* iOS-style Header with glassmorphism */}
       <div className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-3 safe-area-top sticky top-0 z-10">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>CRAFTED 2025</h1>
+          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>Crafted Compass</h1>
           <p className="text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
         </div>
       </div>
@@ -176,12 +176,15 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="text-center mt-8 px-4">
-            <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-8 shadow-lg border border-gray-100/50">
-              <h2 className="text-3xl font-serif text-gray-900 mb-3" style={{ fontFamily: 'Georgia, serif' }}>
-                Welcome to Crafted 2025
+            <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100/50">
+              <h2 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+                Welcome to Your Crafted Assistant
               </h2>
-              <p className="text-gray-600 text-base leading-relaxed max-w-md mx-auto">
-                A multi-day journey of culinary expression, spirited tastings, and hands-on discovery.
+              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-4">
+                Step into a sun-kissed symphony of flavors and creativity with our AI-powered chatbot—your personal guide to Crafted 2025. From firkin-poured ales under the Florida sky to hands-on makers markets along pristine paths, ask about schedules, signature events like the Spirited Soirée, or tips for savoring every moment in this multi-day celebration of culinary artistry.
+              </p>
+              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto italic">
+                We're focused solely on Crafted details—no outside web searches or extra AI info, just pure event magic for your unforgettable Alys Beach adventure.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
@@ -275,10 +278,13 @@ export default function ChatPage() {
             </button>
           </div>
 
-          {/* Subtle footer */}
-          <div className="text-center mt-2">
-            <p className="text-[10px] text-gray-400">
-              Crafted 2025 v{version} • Claude 3.5 Haiku
+          {/* Footer disclaimer */}
+          <div className="text-center mt-3 px-2">
+            <p className="text-[10px] sm:text-xs text-gray-400 leading-relaxed max-w-2xl mx-auto">
+              This is a conceptual prototype—experimental and not officially endorsed by Alys Beach or EBSCO Gulf Coast Development.
+            </p>
+            <p className="text-[9px] text-gray-300 mt-1">
+              v{version} • Claude 3.5 Haiku
             </p>
           </div>
         </form>

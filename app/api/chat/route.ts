@@ -63,7 +63,9 @@ export async function POST(req: Request) {
     console.log('[CHAT API] Messages count:', messages.length);
 
     // Messages are already in the correct format: {role, content}
-    // Using Claude 3.5 Haiku for faster response times
+    // Using Claude 3.5 Haiku for faster response times (3x faster than Opus)
+    // Note: Full 70KB event data is sent with every request in system prompt
+    // Future optimization: Implement RAG with vector DB for even faster responses
     const result = await streamText({
       model: anthropic('claude-3-5-haiku-20241022'),
       system: systemPrompt,
