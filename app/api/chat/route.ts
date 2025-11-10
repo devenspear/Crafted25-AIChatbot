@@ -1,5 +1,5 @@
 import { anthropic } from '@ai-sdk/anthropic';
-import { streamText, convertToModelMessages } from 'ai';
+import { streamText } from 'ai';
 import craftedData from '@/lib/crafted_data.json';
 
 export const runtime = 'edge';
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     console.log('[CHAT API] Messages received:', messages?.length || 0);
+    console.log('[CHAT API] First message:', messages?.[0]);
 
     if (!messages || !Array.isArray(messages)) {
       console.error('[CHAT API] Invalid messages format');
@@ -45,14 +46,11 @@ export async function POST(req: Request) {
       });
     }
 
-    // Convert UIMessage[] to ModelMessage[]
-    const modelMessages = convertToModelMessages(messages);
-    console.log('[CHAT API] Converted to model messages:', modelMessages.length);
-
+    // Messages are already in the correct format: {role, content}
     const result = await streamText({
       model: anthropic('claude-3-5-sonnet-20241022'),
       system: systemPrompt,
-      messages: modelMessages,
+      messages: messages,
       temperature: 0.7,
     });
 
