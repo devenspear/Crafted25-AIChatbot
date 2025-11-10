@@ -134,16 +134,23 @@ export default function ChatPage() {
   };
 
   const suggestedQuestions = [
-    { emoji: '🌴', title: 'Saturday Schedule', question: 'What events are unfolding under the palms?' },
-    { emoji: '🍺', title: 'Firkin Fête', question: 'Tell me about the Firkin Fête.' },
-    { emoji: '✨', title: 'Workshops', question: 'What hands-on discoveries await?' },
-    { emoji: '📅', title: 'Full Schedule', question: 'Show me the full event lineup.' },
+    { emoji: '📅', title: 'Saturday Lineup', subtitle: 'Times & locations for Saturday.', question: "What's on Saturday after 5?" },
+    { emoji: '🍺', title: 'Firkin Fête', subtitle: 'Pours, times, tickets.', question: 'Where is Firkin Fête and when does tapping start?' },
+    { emoji: '✨', title: 'Workshops & Makers', subtitle: 'Hands-on sessions & sign-ups.', question: 'Any workshops on fermentation Sunday?' },
+    { emoji: '🎭', title: 'All Events', subtitle: 'Full festival at a glance.', question: 'Show me the Spirited Soirée details.' },
   ];
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-white overflow-hidden">
-      {/* iOS-style Header with glassmorphism */}
-      <div className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-3 safe-area-top sticky top-0 z-10">
+      {/* iOS-style Header with glassmorphism - Fixed/Locked */}
+      <div
+        className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-3 sticky top-0 z-50"
+        style={{
+          position: '-webkit-sticky',
+          WebkitBackfaceVisibility: 'hidden',
+          paddingTop: 'max(0.75rem, env(safe-area-inset-top))'
+        }}
+      >
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>Crafted Compass</h1>
           <p className="text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
@@ -178,13 +185,10 @@ export default function ChatPage() {
           <div className="text-center mt-8 px-4">
             <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100/50">
               <h2 className="text-2xl sm:text-3xl font-serif text-gray-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                Welcome to Your Crafted Assistant
+                Your Crafted AI
               </h2>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-4">
-                Step into a sun-kissed symphony of flavors and creativity with our AI-powered chatbot—your personal guide to Crafted 2025. From firkin-poured ales under the Florida sky to hands-on makers markets along pristine paths, ask about schedules, signature events like the Spirited Soirée, or tips for savoring every moment in this multi-day celebration of culinary artistry.
-              </p>
-              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto italic">
-                We're focused solely on Crafted details—no outside web searches or extra AI info, just pure event magic for your unforgettable Alys Beach adventure.
+              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+                Everything <strong>Crafted at Alys Beach • Nov 12–16</strong>. Ask for schedules, Firkin Fête, workshops, Spirited Soirée, and insider tips. <strong>Crafted-only answers—no outside web.</strong>
               </p>
             </div>
             <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
@@ -199,8 +203,8 @@ export default function ChatPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{sq.emoji}</span>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 text-sm group-hover:text-[#004978] transition-colors">{sq.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{sq.question}</p>
+                      <p className="font-semibold text-gray-900 text-sm group-hover:text-[#004978] transition-colors">{sq.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 italic">{sq.subtitle}</p>
                     </div>
                   </div>
                 </button>
@@ -251,7 +255,7 @@ export default function ChatPage() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Message"
+                placeholder="Try: What's on Saturday after 5?"
                 className="w-full px-4 py-2.5 sm:py-3 rounded-full bg-gray-100/80 border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#004978]/30 focus:border-[#004978]/50 text-gray-900 placeholder-gray-500 text-[16px] transition-all backdrop-blur-sm"
                 disabled={isLoading}
                 autoComplete="off"
