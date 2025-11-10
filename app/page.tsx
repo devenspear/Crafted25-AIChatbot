@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react';
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status, error, clearError } = useChat();
+  const { messages, sendMessage, status, error, clearError } = useChat({
+    api: '/api/chat',
+  });
   const [localError, setLocalError] = useState<string | null>(null);
 
   const isLoading = status === 'submitted' || status === 'streaming';
