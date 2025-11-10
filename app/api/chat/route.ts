@@ -1,4 +1,4 @@
-import { anthropic } from '@ai-sdk/anthropic';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 import { searchEventData } from '@/lib/rag-search';
 import { getSystemPrompt } from '@/lib/system-prompt';
@@ -23,6 +23,11 @@ export async function POST(req: Request) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    // Initialize Anthropic client with explicit API key for Edge runtime
+    const anthropic = createAnthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
 
     // RAG: Extract user's last message to search relevant data
     const lastMessage = messages[messages.length - 1];
