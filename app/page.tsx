@@ -1,65 +1,124 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useChat } from '@ai-sdk/react';
+import { useState } from 'react';
+
+export default function ChatPage() {
+  const [input, setInput] = useState('');
+  const { messages, sendMessage, status } = useChat();
+
+  const isLoading = status === 'submitted' || status === 'streaming';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input;
+    setInput('');
+    await sendMessage({
+      role: 'user',
+      parts: [{ type: 'text', text: userMessage }]
+    });
+  };
+
+  const suggestedQuestions = [
+    { emoji: '📅', title: 'Saturday Schedule', question: 'What events are happening on Saturday?' },
+    { emoji: '🍺', title: 'Firkin Fête', question: 'Tell me about the Firkin Fête' },
+    { emoji: '✨', title: 'Workshops', question: 'What workshops are available?' },
+    { emoji: '🗓️', title: 'Full Schedule', question: 'Show me the full event schedule' },
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex flex-col h-screen bg-gradient-to-br from-orange-50 to-amber-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-600 to-amber-600 text-white p-6 shadow-lg">
+        <h1 className="text-3xl font-bold">Crafted 2025</h1>
+        <p className="text-orange-100 mt-1">Your Event Assistant • November 12-16 • Alys Beach, Florida</p>
+      </div>
+
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="text-center mt-12 px-4">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              Welcome to Crafted 2025! 🎨
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Ask me anything about the event schedule, experiences, or activities!
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+              {suggestedQuestions.map((sq, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setInput(sq.question)}
+                  className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow text-left"
+                >
+                  <p className="font-medium text-gray-800">{sq.emoji} {sq.title}</p>
+                  <p className="text-sm text-gray-600">{sq.question}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <div
+              className={`max-w-[85%] rounded-lg p-4 ${
+                message.role === 'user'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-white text-gray-800 shadow-md'
+              }`}
+            >
+              <div className="whitespace-pre-wrap">
+                {message.parts.map((part, idx) => {
+                  if (part.type === 'text') {
+                    return <span key={idx}>{part.text}</span>;
+                  }
+                  return null;
+                })}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-white rounded-lg p-4 shadow-md">
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce [animation-delay:0.1s]"></div>
+                <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input Form */}
+      <div className="border-t border-gray-200 bg-white p-4 shadow-lg">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <div className="flex space-x-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about Crafted 2025 events..."
+              className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              disabled={isLoading}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg font-medium hover:from-orange-700 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Send
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
