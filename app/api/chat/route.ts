@@ -3,7 +3,7 @@ import { streamText } from 'ai';
 import { searchEventData } from '@/lib/rag-search';
 import { getSystemPrompt } from '@/lib/system-prompt';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
@@ -17,26 +17,16 @@ export async function POST(req: Request) {
       });
     }
 
-    // Get API key from environment
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-
-    if (!apiKey) {
-      return new Response(JSON.stringify({
-        error: 'API key not configured',
-        debug: {
-          hasEnvVar: !!process.env.ANTHROPIC_API_KEY,
-          envKeys: Object.keys(process.env).filter(k => k.includes('ANTHROPIC')),
-          runtime: 'edge'
-        }
-      }), {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return new Response(JSON.stringify({ error: 'API key not configured' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    // Initialize Anthropic client with explicit API key for Edge runtime
+    // Initialize Anthropic client with explicit API key
     const anthropic = createAnthropic({
-      apiKey: apiKey,
+      apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
     // RAG: Extract user's last message to search relevant data
