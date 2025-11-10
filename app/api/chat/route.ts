@@ -17,8 +17,18 @@ export async function POST(req: Request) {
       });
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+    // Get API key from environment
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+
+    if (!apiKey) {
+      return new Response(JSON.stringify({
+        error: 'API key not configured',
+        debug: {
+          hasEnvVar: !!process.env.ANTHROPIC_API_KEY,
+          envKeys: Object.keys(process.env).filter(k => k.includes('ANTHROPIC')),
+          runtime: 'edge'
+        }
+      }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -26,7 +36,7 @@ export async function POST(req: Request) {
 
     // Initialize Anthropic client with explicit API key for Edge runtime
     const anthropic = createAnthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: apiKey,
     });
 
     // RAG: Extract user's last message to search relevant data
