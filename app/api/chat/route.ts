@@ -33,6 +33,9 @@ GUIDELINES:
 export async function POST(req: Request) {
   try {
     console.log('[CHAT API] Received request');
+    console.log('[CHAT API] API Key available:', !!process.env.ANTHROPIC_API_KEY);
+    console.log('[CHAT API] API Key prefix:', process.env.ANTHROPIC_API_KEY?.substring(0, 20));
+
     const { messages } = await req.json();
 
     console.log('[CHAT API] Messages received:', messages?.length || 0);
@@ -46,6 +49,15 @@ export async function POST(req: Request) {
       });
     }
 
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('[CHAT API] ANTHROPIC_API_KEY not found');
+      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('[CHAT API] Calling streamText...');
     // Messages are already in the correct format: {role, content}
     const result = await streamText({
       model: anthropic('claude-3-5-sonnet-20241022'),
@@ -54,14 +66,19 @@ export async function POST(req: Request) {
       temperature: 0.7,
     });
 
-    console.log('[CHAT API] Streaming response started');
+    console.log('[CHAT API] StreamText completed, returning response');
     return result.toTextStreamResponse();
   } catch (error) {
-    console.error('[CHAT API] Error:', error);
+    console.error('[CHAT API] Error details:', error);
+    console.error('[CHAT API] Error name:', error instanceof Error ? error.name : 'unknown');
+    console.error('[CHAT API] Error message:', error instanceof Error ? error.message : 'unknown');
+    console.error('[CHAT API] Error stack:', error instanceof Error ? error.stack : 'unknown');
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({
       error: 'Failed to process chat request',
-      details: errorMessage
+      details: errorMessage,
+      name: error instanceof Error ? error.name : 'unknown'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
