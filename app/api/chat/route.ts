@@ -72,20 +72,8 @@ export async function POST(req: Request) {
 
     console.log('[CHAT API] StreamText result type:', typeof result);
     console.log('[CHAT API] StreamText result keys:', Object.keys(result));
+    console.log('[CHAT API] Returning stream response...');
 
-    // Check if there's an error in the result
-    if (result.error) {
-      console.error('[CHAT API] StreamText returned error:', result.error);
-      return new Response(JSON.stringify({
-        error: 'AI model error',
-        details: result.error.message || 'Unknown error'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('[CHAT API] StreamText completed, returning response');
     return result.toTextStreamResponse();
   } catch (error) {
     console.error('[CHAT API] Error details:', error);
