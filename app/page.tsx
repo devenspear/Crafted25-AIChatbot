@@ -47,6 +47,7 @@ export default function ChatPage() {
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
+      console.log('[UI] Sending fetch to /api/chat...');
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,7 +60,8 @@ export default function ChatPage() {
         signal: abortControllerRef.current.signal,
       });
 
-      console.log('[UI] Response status:', response.status);
+      console.log('[UI] Response received, status:', response.status);
+      console.log('[UI] Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -76,6 +78,8 @@ export default function ChatPage() {
       let assistantContent = '';
       const assistantId = (Date.now() + 1).toString();
 
+      console.log('[UI] Starting to read stream...');
+
       // Add empty assistant message
       setMessages(prev => [...prev, {
         id: assistantId,
@@ -83,12 +87,20 @@ export default function ChatPage() {
         content: '',
       }]);
 
+      let chunkCount = 0;
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        console.log('[UI] Read chunk:', { done, valueLength: value?.length });
+
+        if (done) {
+          console.log('[UI] Stream done');
+          break;
+        }
 
         const chunk = decoder.decode(value, { stream: true });
+        console.log('[UI] Decoded chunk:', chunk.substring(0, 100));
         assistantContent += chunk;
+        chunkCount++;
 
         // Update assistant message with accumulated content
         setMessages(prev => prev.map(m =>
@@ -96,7 +108,7 @@ export default function ChatPage() {
         ));
       }
 
-      console.log('[UI] Stream complete, assistant content length:', assistantContent.length);
+      console.log('[UI] Stream complete, chunks:', chunkCount, 'content length:', assistantContent.length);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         console.log('[UI] Request aborted');
