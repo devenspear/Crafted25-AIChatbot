@@ -13,12 +13,60 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crafted 2025 AI Assistant",
-  description: "Your guide to Crafted 2025 - a multi-day celebration of culinary creativity at Alys Beach, Florida",
+  metadataBase: new URL('https://craftedai.deven.network'),
+  title: "CRAFTED AI - Your Alys Beach Event Guide",
+  description: "Your intelligent guide to CRAFTED 2025 at Alys Beach, Florida (Nov 12-16). Get instant answers about event schedules, Firkin Fête, workshops, Spirited Soirée, and more.",
+  keywords: ["Crafted", "Alys Beach", "Florida", "culinary events", "craft beer", "workshops", "makers market", "November 2025", "event guide", "AI assistant"],
+  authors: [{ name: "CRAFTED at Alys Beach" }],
+  creator: "CRAFTED Event Team",
+  publisher: "Alys Beach",
+  applicationName: "CRAFTED AI",
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Crafted 2025',
+    title: 'CRAFTED AI',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://craftedai.deven.network',
+    siteName: 'CRAFTED AI',
+    title: 'CRAFTED AI - Your Alys Beach Event Guide',
+    description: 'Your intelligent guide to CRAFTED 2025 at Alys Beach, Florida (Nov 12-16). Get instant answers about events, schedules, and experiences.',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'CRAFTED AI - Alys Beach Event Guide',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CRAFTED AI - Your Alys Beach Event Guide',
+    description: 'Your intelligent guide to CRAFTED 2025 at Alys Beach, Florida (Nov 12-16).',
+    images: ['/opengraph-image'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-icon.svg', type: 'image/svg+xml' },
+    ],
   },
 };
 
