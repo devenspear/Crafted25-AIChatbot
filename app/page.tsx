@@ -82,7 +82,7 @@ export default function ChatPage() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                {displayError.message || displayError.toString()}
+                {displayError instanceof Error ? displayError.message : String(displayError)}
               </p>
               <button
                 onClick={() => {
