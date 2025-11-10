@@ -1,5 +1,5 @@
 import { anthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 import craftedData from '@/lib/crafted_data.json';
 
 export const runtime = 'edge';
@@ -32,19 +32,39 @@ GUIDELINES:
 
 export async function POST(req: Request) {
   try {
+    console.log('[CHAT API] Received request');
     const { messages } = await req.json();
+
+    console.log('[CHAT API] Messages received:', messages?.length || 0);
+
+    if (!messages || !Array.isArray(messages)) {
+      console.error('[CHAT API] Invalid messages format');
+      return new Response(JSON.stringify({ error: 'Messages must be an array' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Convert UIMessage[] to ModelMessage[]
+    const modelMessages = convertToModelMessages(messages);
+    console.log('[CHAT API] Converted to model messages:', modelMessages.length);
 
     const result = await streamText({
       model: anthropic('claude-3-5-sonnet-20241022'),
       system: systemPrompt,
-      messages,
+      messages: modelMessages,
       temperature: 0.7,
     });
 
+    console.log('[CHAT API] Streaming response started');
     return result.toTextStreamResponse();
   } catch (error) {
-    console.error('Chat API error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to process chat request' }), {
+    console.error('[CHAT API] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(JSON.stringify({
+      error: 'Failed to process chat request',
+      details: errorMessage
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
