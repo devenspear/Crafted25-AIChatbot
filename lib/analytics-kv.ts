@@ -218,11 +218,32 @@ export async function getAnalyticsEvents(
     const start = startDate || 0;
     const end = endDate || Date.now();
 
+    console.log('[Analytics] Querying events with range:', {
+      start,
+      end,
+      startDate: new Date(start).toISOString(),
+      endDate: new Date(end).toISOString()
+    });
+
+    // First check if any events exist at all
+    const allEvents = await kv.zrange<string[]>(EVENTS_KEY, 0, -1);
+    console.log('[Analytics] Total events in sorted set:', allEvents?.length || 0);
+
+    if (allEvents && allEvents.length > 0) {
+      console.log('[Analytics] Sample event:', allEvents[0].substring(0, 100));
+    }
+
     // Get events from sorted set by score (timestamp) range
     const events = await kv.zrange<string[]>(EVENTS_KEY, start, end, {
       byScore: true,
     });
 
+    if (!events || events.length === 0) {
+      console.log('[Analytics] No events found in score range:', { start, end });
+      return [];
+    }
+
+    console.log(`[Analytics] Retrieved ${events.length} events from KV`);
     return events.map(e => JSON.parse(e) as AnalyticsEvent);
   } catch (error) {
     console.error('Error getting analytics events:', error);
