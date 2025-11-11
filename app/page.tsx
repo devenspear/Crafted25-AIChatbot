@@ -14,6 +14,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [sessionId, setSessionId] = useState<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -21,6 +22,18 @@ export default function ChatPage() {
   const version = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
     ? `1.0.${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 7)}`
     : '1.0.dev';
+
+  // Initialize session ID
+  useEffect(() => {
+    const existingSessionId = sessionStorage.getItem('crafted_session_id');
+    if (existingSessionId) {
+      setSessionId(existingSessionId);
+    } else {
+      const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('crafted_session_id', newSessionId);
+      setSessionId(newSessionId);
+    }
+  }, []);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -69,6 +82,7 @@ export default function ChatPage() {
             role: m.role,
             content: m.content,
           })),
+          sessionId: sessionId,
         }),
         signal: abortControllerRef.current.signal,
       });

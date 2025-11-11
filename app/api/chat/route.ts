@@ -2,13 +2,25 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 import { searchEventData } from '@/lib/rag-search';
 import { getSystemPrompt } from '@/lib/system-prompt';
+import {
+  generateSessionId,
+  trackChatRequest,
+  trackChatResponse,
+  trackError,
+} from '@/lib/analytics';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  const startTime = Date.now();
+  let sessionId = '';
+
   try {
-    const { messages } = await req.json();
+    const { messages, sessionId: clientSessionId } = await req.json();
+
+    // Use client session ID or generate new one
+    sessionId = clientSessionId || generateSessionId();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Messages must be an array' }), {
@@ -35,6 +47,9 @@ export async function POST(req: Request) {
       ? lastMessage.content
       : '';
 
+    // Track the chat request
+    await trackChatRequest(sessionId, userQuery);
+
     // Smart search: Only retrieve relevant event data (5KB vs 78KB)
     // This reduces costs by ~93% while maintaining accuracy
     const relevantData = searchEventData(userQuery, 5);
@@ -50,9 +65,35 @@ export async function POST(req: Request) {
       temperature: 0.7,
     });
 
-    return result.toTextStreamResponse();
+    // Track response metrics (estimate tokens for now)
+    const responseTime = Date.now() - startTime;
+    const estimatedInputTokens = Math.ceil(systemPrompt.length / 4);
+    const estimatedOutputTokens = 100; // Will be more accurate with actual response
+
+    await trackChatResponse(
+      sessionId,
+      responseTime,
+      {
+        input: estimatedInputTokens,
+        output: estimatedOutputTokens,
+      },
+      'claude-3-5-haiku-20241022',
+      relevantData.length
+    );
+
+    // Add session ID to response headers
+    const response = result.toTextStreamResponse();
+    response.headers.set('X-Session-ID', sessionId);
+
+    return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Track the error
+    if (sessionId) {
+      await trackError(sessionId, errorMessage, 500);
+    }
+
     return new Response(JSON.stringify({
       error: 'Failed to process chat request',
       details: errorMessage,
