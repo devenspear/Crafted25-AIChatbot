@@ -48,7 +48,9 @@ export async function POST(req: Request) {
       : '';
 
     // Track the chat request
+    console.log('[Analytics] Tracking request:', { sessionId, query: userQuery.substring(0, 50) });
     await trackChatRequest(sessionId, userQuery);
+    console.log('[Analytics] Request tracked successfully');
 
     // Smart search: Only retrieve relevant event data (5KB vs 78KB)
     // This reduces costs by ~93% while maintaining accuracy
