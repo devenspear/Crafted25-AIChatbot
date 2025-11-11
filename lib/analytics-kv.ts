@@ -3,7 +3,7 @@
  * Tracks sessions, usage patterns, AI performance, and API metrics
  */
 
-import { kv } from '@vercel/kv';
+import { kv, isKVAvailable } from './kv-client';
 
 export interface AnalyticsEvent {
   timestamp: number;
@@ -86,6 +86,11 @@ export async function trackChatRequest(
   sessionId: string,
   userQuery: string
 ): Promise<void> {
+  if (!kv || !isKVAvailable) {
+    console.warn('[Analytics] KV not available, skipping tracking');
+    return;
+  }
+
   try {
     const event: AnalyticsEvent = {
       timestamp: Date.now(),
@@ -135,6 +140,11 @@ export async function trackChatResponse(
   modelUsed: string,
   relevantChunks: number
 ): Promise<void> {
+  if (!kv || !isKVAvailable) {
+    console.warn('[Analytics] KV not available, skipping tracking');
+    return;
+  }
+
   try {
     const event: AnalyticsEvent = {
       timestamp: Date.now(),
@@ -172,6 +182,11 @@ export async function trackError(
   errorDetails: string,
   statusCode: number
 ): Promise<void> {
+  if (!kv || !isKVAvailable) {
+    console.warn('[Analytics] KV not available, skipping tracking');
+    return;
+  }
+
   try {
     const event: AnalyticsEvent = {
       timestamp: Date.now(),
@@ -194,6 +209,11 @@ export async function getAnalyticsEvents(
   startDate?: number,
   endDate?: number
 ): Promise<AnalyticsEvent[]> {
+  if (!kv || !isKVAvailable) {
+    console.warn('[Analytics] KV not available, returning empty events');
+    return [];
+  }
+
   try {
     const start = startDate || 0;
     const end = endDate || Date.now();
@@ -214,6 +234,11 @@ export async function getAnalyticsEvents(
  * Get session metrics
  */
 export async function getSessionMetrics(): Promise<SessionMetrics[]> {
+  if (!kv || !isKVAvailable) {
+    console.warn('[Analytics] KV not available, returning empty sessions');
+    return [];
+  }
+
   try {
     // Get all session keys
     const keys = await kv.keys(`${SESSIONS_KEY}:*`);
@@ -399,6 +424,11 @@ export async function getRealTimeStats() {
  * Clean up old analytics data (keep last 30 days)
  */
 export async function cleanupOldAnalytics(): Promise<void> {
+  if (!kv || !isKVAvailable) {
+    console.warn('[Analytics] KV not available, skipping cleanup');
+    return;
+  }
+
   try {
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
