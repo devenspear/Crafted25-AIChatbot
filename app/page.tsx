@@ -200,41 +200,43 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="text-center mt-8 px-4">
-            <div className="mb-8 p-6 sm:p-8 relative">
-              <style jsx>{`
-                @keyframes rollingHighlight {
-                  0% {
-                    background-position: 0% 50%;
-                  }
-                  50% {
-                    background-position: 100% 50%;
-                  }
-                  100% {
-                    background-position: 0% 50%;
-                  }
-                }
-                .rolling-highlight {
-                  background: linear-gradient(
-                    90deg,
-                    transparent 0%,
-                    rgba(0, 73, 120, 0.15) 25%,
-                    rgba(0, 73, 120, 0.25) 50%,
-                    rgba(0, 73, 120, 0.15) 75%,
-                    transparent 100%
-                  );
-                  background-size: 200% 100%;
-                  animation: rollingHighlight 3s ease-in-out infinite;
-                  border-radius: 1.5rem;
-                  padding: 1.5rem 2rem;
-                }
-              `}</style>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto rolling-highlight">
-                Everything <strong>CRAFTED at Alys Beach • Nov 12–16</strong>. Ask for schedules, Firkin Fête, workshops, Spirited Soirée, and insider tips. <strong>CRAFTED-only answers—no outside web.</strong>
+            <div className="mb-8 p-6 sm:p-8">
+              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+                From first pour to final toast, consider me your compass for all things CRAFTED. Tell me a time, a craving, or a curiosity, and I'll guide you to what's happening next—from workshops to signature soirées. Think of me as the festival desk in your pocket, offering clear, CRAFTED-only answers so you can wander more and scroll less.
               </p>
             </div>
             <p className="text-gray-600 text-sm sm:text-base mb-4 text-center">
-              As your CRAFTED AI I can help with things like:
+              Try asking about:
             </p>
+            <style jsx>{`
+              @keyframes rollingHighlight {
+                0% {
+                  background-position: 0% 50%;
+                }
+                50% {
+                  background-position: 100% 50%;
+                }
+                100% {
+                  background-position: 0% 50%;
+                }
+              }
+              .rolling-highlight-button {
+                background: linear-gradient(
+                  90deg,
+                  rgba(255, 255, 255, 0.7) 0%,
+                  rgba(0, 73, 120, 0.1) 25%,
+                  rgba(0, 73, 120, 0.2) 50%,
+                  rgba(0, 73, 120, 0.1) 75%,
+                  rgba(255, 255, 255, 0.7) 100%
+                );
+                background-size: 200% 100%;
+                animation: rollingHighlight 3s ease-in-out infinite;
+              }
+              .rolling-highlight-button:hover {
+                background: rgba(255, 255, 255, 0.9);
+                animation: none;
+              }
+            `}</style>
             <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
               {suggestedQuestions.map((sq, idx) => (
                 <button
@@ -242,7 +244,7 @@ export default function ChatPage() {
                   onClick={() => {
                     setInput(sq.question);
                   }}
-                  className="backdrop-blur-md bg-white/70 hover:bg-white/90 rounded-2xl p-4 shadow-sm hover:shadow-md border border-gray-100/50 transition-all duration-200 text-left group active:scale-95"
+                  className="backdrop-blur-md rolling-highlight-button hover:bg-white/90 rounded-2xl p-4 shadow-sm hover:shadow-md border border-gray-100/50 transition-all duration-200 text-left group active:scale-95"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{sq.emoji}</span>
