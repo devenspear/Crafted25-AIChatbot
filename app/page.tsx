@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import SettingsMenu, { Theme, FontSize } from '@/components/SettingsMenu';
 
 type Message = {
   id: string;
@@ -15,6 +16,9 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>('light');
+  const [fontSize, setFontSize] = useState<FontSize>('medium');
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +26,38 @@ export default function ChatPage() {
   const version = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
     ? `1.0.${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 7)}`
     : '1.0.dev';
+
+  // Font size class mapping
+  const fontSizeClasses = {
+    small: 'text-sm',
+    medium: 'text-base',
+    large: 'text-lg',
+  };
+
+  // Initialize settings from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('crafted_theme') as Theme | null;
+    const savedFontSize = localStorage.getItem('crafted_fontSize') as FontSize | null;
+
+    if (savedTheme) setTheme(savedTheme);
+    if (savedFontSize) setFontSize(savedFontSize);
+  }, []);
+
+  // Apply theme to document
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('crafted_theme', theme);
+  }, [theme]);
+
+  // Save font size to localStorage
+  useEffect(() => {
+    localStorage.setItem('crafted_fontSize', fontSize);
+  }, [fontSize]);
 
   // Initialize session ID
   useEffect(() => {
@@ -157,10 +193,18 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className={`flex flex-col h-screen transition-colors duration-300 ${
+      theme === 'dark'
+        ? 'bg-gradient-to-b from-gray-900 to-gray-800'
+        : 'bg-gradient-to-b from-gray-50 to-white'
+    }`}>
       {/* iOS-style Header with glassmorphism - Fixed/Locked */}
       <div
-        className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-2.5 sm:py-3 fixed top-0 left-0 right-0 z-50 cursor-pointer"
+        className={`backdrop-blur-xl border-b shadow-sm px-4 py-2.5 sm:py-3 fixed top-0 left-0 right-0 z-50 ${
+          theme === 'dark'
+            ? 'bg-gray-900/80 border-gray-700/50'
+            : 'bg-white/80 border-gray-200/50'
+        }`}
         style={{
           position: 'fixed',
           WebkitBackfaceVisibility: 'hidden',
@@ -169,25 +213,53 @@ export default function ChatPage() {
           paddingTop: 'max(0.625rem, env(safe-area-inset-top))',
           minHeight: '3.5rem',
         }}
-        onClick={() => window.location.reload()}
       >
-        <div className="max-w-3xl mx-auto">
-          <h1
-            className="font-serif text-center text-gray-900 tracking-tight text-xl sm:text-2xl md:text-3xl"
-            style={{
-              fontFamily: 'Georgia, serif',
-              lineHeight: '1.2',
-            }}
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="w-10"></div> {/* Spacer for centering */}
+          <div className="flex-1 cursor-pointer" onClick={() => window.location.reload()}>
+            <h1
+              className={`font-serif text-center tracking-tight text-xl sm:text-2xl md:text-3xl ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}
+              style={{
+                fontFamily: 'Georgia, serif',
+                lineHeight: '1.2',
+              }}
+            >
+              CRAFTED CONCIERGE
+            </h1>
+            <p className={`text-[10px] sm:text-xs text-center mt-0.5 font-light ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}>Alys Beach, Florida • Nov 12–16</p>
+          </div>
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className={`w-10 h-10 flex flex-col items-center justify-center gap-1 rounded-lg transition-colors ${
+              theme === 'dark'
+                ? 'hover:bg-gray-800 active:bg-gray-700'
+                : 'hover:bg-gray-100 active:bg-gray-200'
+            }`}
+            aria-label="Open settings"
           >
-            CRAFTED CONCIERGE
-          </h1>
-          <p className="text-[10px] sm:text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
+            <span className={`w-5 h-0.5 rounded-full transition-colors ${
+              theme === 'dark' ? 'bg-gray-300' : 'bg-gray-700'
+            }`}></span>
+            <span className={`w-5 h-0.5 rounded-full transition-colors ${
+              theme === 'dark' ? 'bg-gray-300' : 'bg-gray-700'
+            }`}></span>
+            <span className={`w-5 h-0.5 rounded-full transition-colors ${
+              theme === 'dark' ? 'bg-gray-300' : 'bg-gray-700'
+            }`}></span>
+          </button>
         </div>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 fixed top-16 left-0 right-0 z-40">
+        <div className={`border-l-4 border-red-500 p-4 mx-4 fixed top-16 left-0 right-0 z-40 ${
+          theme === 'dark' ? 'bg-red-900/50' : 'bg-red-50'
+        }`}>
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -195,10 +267,10 @@ export default function ChatPage() {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-red-200' : 'text-red-700'}`}>{error}</p>
               <button
                 onClick={() => setError(null)}
-                className="text-xs text-red-600 underline mt-1"
+                className={`text-xs underline mt-1 ${theme === 'dark' ? 'text-red-300' : 'text-red-600'}`}
               >
                 Dismiss
               </button>
@@ -212,11 +284,15 @@ export default function ChatPage() {
         {messages.length === 0 && (
           <div className="text-center mt-8 px-4">
             <div className="mb-8 p-6 sm:p-8">
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+              <p className={`leading-relaxed max-w-2xl mx-auto ${fontSizeClasses[fontSize]} ${
+                theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+              }`}>
                 From first pour to final toast, consider me your AI compass for all things CRAFTED. Tell me a time, a craving, or a curiosity, and I'll guide you to what's happening next—from workshops to signature soirées. Think of me as the festival desk in your pocket, offering clear, CRAFTED-only answers so you can wander more and scroll less.
               </p>
             </div>
-            <p className="text-gray-600 text-sm sm:text-base mb-4 text-center">
+            <p className={`mb-4 text-center ${fontSizeClasses[fontSize]} ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`}>
               Try asking about:
             </p>
             <style jsx>{`
@@ -234,17 +310,17 @@ export default function ChatPage() {
               .rolling-highlight-button {
                 background: linear-gradient(
                   90deg,
-                  rgba(255, 255, 255, 0.7) 0%,
+                  ${theme === 'dark' ? 'rgba(31, 41, 55, 0.7)' : 'rgba(255, 255, 255, 0.7)'} 0%,
                   rgba(0, 73, 120, 0.1) 25%,
                   rgba(0, 73, 120, 0.2) 50%,
                   rgba(0, 73, 120, 0.1) 75%,
-                  rgba(255, 255, 255, 0.7) 100%
+                  ${theme === 'dark' ? 'rgba(31, 41, 55, 0.7)' : 'rgba(255, 255, 255, 0.7)'} 100%
                 );
                 background-size: 200% 100%;
                 animation: rollingHighlight 3s ease-in-out infinite;
               }
               .rolling-highlight-button:hover {
-                background: rgba(255, 255, 255, 0.9);
+                background: ${theme === 'dark' ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
                 animation: none;
               }
             `}</style>
@@ -255,13 +331,21 @@ export default function ChatPage() {
                   onClick={() => {
                     setInput(sq.question);
                   }}
-                  className="backdrop-blur-md rolling-highlight-button hover:bg-white/90 rounded-2xl p-4 shadow-sm hover:shadow-md border border-gray-100/50 transition-all duration-200 text-left group active:scale-95"
+                  className={`backdrop-blur-md rolling-highlight-button rounded-2xl p-4 shadow-sm hover:shadow-md border transition-all duration-200 text-left group active:scale-95 ${
+                    theme === 'dark'
+                      ? 'border-gray-700/50 hover:bg-gray-800/90'
+                      : 'border-gray-100/50 hover:bg-white/90'
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{sq.emoji}</span>
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900 text-sm group-hover:text-[#004978] transition-colors">{sq.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 italic">{sq.subtitle}</p>
+                      <p className={`font-semibold group-hover:text-[#004978] transition-colors ${fontSizeClasses[fontSize]} ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>{sq.title}</p>
+                      <p className={`text-xs mt-0.5 italic ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}>{sq.subtitle}</p>
                     </div>
                   </div>
                 </button>
@@ -279,10 +363,12 @@ export default function ChatPage() {
               className={`max-w-[75%] sm:max-w-[70%] rounded-3xl px-4 py-3 ${
                 message.role === 'user'
                   ? 'bg-[#004978] text-white shadow-md'
+                  : theme === 'dark'
+                  ? 'backdrop-blur-md bg-gray-700/80 text-gray-100 border border-gray-600/50'
                   : 'backdrop-blur-md bg-gray-100/80 text-gray-900 border border-gray-200/50'
               }`}
             >
-              <div className="whitespace-pre-wrap leading-relaxed text-[15px] sm:text-base">
+              <div className={`whitespace-pre-wrap leading-relaxed ${fontSize === 'small' ? 'text-sm' : fontSize === 'large' ? 'text-lg' : 'text-base'}`}>
                 {message.content}
               </div>
             </div>
@@ -291,11 +377,15 @@ export default function ChatPage() {
 
         {isLoading && (
           <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-200">
-            <div className="backdrop-blur-md bg-gray-100/80 rounded-3xl px-5 py-3.5 border border-gray-200/50">
+            <div className={`backdrop-blur-md rounded-3xl px-5 py-3.5 border ${
+              theme === 'dark'
+                ? 'bg-gray-700/80 border-gray-600/50'
+                : 'bg-gray-100/80 border-gray-200/50'
+            }`}>
               <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                <div className={`w-2 h-2 rounded-full animate-bounce ${theme === 'dark' ? 'bg-gray-300' : 'bg-gray-400'}`}></div>
+                <div className={`w-2 h-2 rounded-full animate-bounce [animation-delay:0.2s] ${theme === 'dark' ? 'bg-gray-300' : 'bg-gray-400'}`}></div>
+                <div className={`w-2 h-2 rounded-full animate-bounce [animation-delay:0.4s] ${theme === 'dark' ? 'bg-gray-300' : 'bg-gray-400'}`}></div>
               </div>
             </div>
           </div>
@@ -305,7 +395,11 @@ export default function ChatPage() {
       </div>
 
       {/* iOS-style Input Bar with glassmorphism */}
-      <div className="backdrop-blur-xl bg-white/80 border-t border-gray-200/30 px-4 py-3 pb-safe safe-area-bottom">
+      <div className={`backdrop-blur-xl border-t px-4 py-3 pb-safe safe-area-bottom ${
+        theme === 'dark'
+          ? 'bg-gray-900/80 border-gray-700/30'
+          : 'bg-white/80 border-gray-200/30'
+      }`}>
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
           <div className="flex items-end gap-2">
             <div className="flex-1 relative">
@@ -313,7 +407,11 @@ export default function ChatPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isFirstLoad ? "Ask something..." : ""}
-                className="w-full px-4 py-2.5 sm:py-3 rounded-full bg-gray-100/80 border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#004978]/30 focus:border-[#004978]/50 text-gray-900 placeholder-gray-500 text-[16px] transition-all backdrop-blur-sm"
+                className={`w-full px-4 py-2.5 sm:py-3 rounded-full border focus:outline-none focus:ring-2 focus:ring-[#004978]/30 focus:border-[#004978]/50 text-[16px] transition-all backdrop-blur-sm ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/80 border-gray-700/50 text-white placeholder-gray-400'
+                    : 'bg-gray-100/80 border-gray-200/50 text-gray-900 placeholder-gray-500'
+                }`}
                 disabled={isLoading}
                 autoComplete="off"
                 style={{ fontSize: '16px' }} // Prevents iOS zoom on focus
@@ -325,6 +423,8 @@ export default function ChatPage() {
               className={`flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 ${
                 input.trim() && !isLoading
                   ? 'bg-[#004978] hover:bg-[#003a60] shadow-md'
+                  : theme === 'dark'
+                  ? 'bg-gray-700 cursor-not-allowed'
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
               aria-label="Send message"
@@ -341,15 +441,29 @@ export default function ChatPage() {
 
           {/* Footer disclaimer */}
           <div className="text-center mt-3 px-2">
-            <p className="text-[10px] sm:text-xs text-gray-400 leading-relaxed max-w-2xl mx-auto">
+            <p className={`text-[10px] sm:text-xs leading-relaxed max-w-2xl mx-auto ${
+              theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+            }`}>
               This is a conceptual prototype—experimental and not officially endorsed by Alys Beach or EBSCO Gulf Coast Development.
             </p>
-            <p className="text-[9px] text-gray-300 mt-1">
+            <p className={`text-[9px] mt-1 ${
+              theme === 'dark' ? 'text-gray-600' : 'text-gray-300'
+            }`}>
               v{version} • Claude 3.5 Haiku
             </p>
           </div>
         </form>
       </div>
+
+      {/* Settings Menu */}
+      <SettingsMenu
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        theme={theme}
+        onThemeChange={setTheme}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+      />
     </div>
   );
 }
