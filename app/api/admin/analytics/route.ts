@@ -4,6 +4,7 @@ import {
   getAnalyticsEvents,
   getSessionMetrics,
 } from '@/lib/analytics-kv';
+import { getBillingMetrics, getCostEfficiencyMetrics } from '@/lib/analytics-billing';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') || 'realtime';
     const days = parseInt(searchParams.get('days') || '7', 10);
+    const monthlyBudget = searchParams.get('budget') ? parseFloat(searchParams.get('budget')!) : undefined;
 
     let data: any;
 
@@ -54,11 +56,20 @@ export async function GET(req: NextRequest) {
         data = await getSessionMetrics();
         break;
 
+      case 'billing':
+        data = await getBillingMetrics(monthlyBudget);
+        break;
+
+      case 'efficiency':
+        data = await getCostEfficiencyMetrics(days);
+        break;
+
       case 'all':
         data = {
           realtime: await getRealTimeStats(),
           daily: await getDailyMetrics(days),
           sessions: await getSessionMetrics(),
+          billing: await getBillingMetrics(monthlyBudget),
         };
         break;
 

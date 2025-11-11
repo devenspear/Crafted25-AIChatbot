@@ -32,14 +32,42 @@ interface DailyMetric {
   categoryCounts: Record<string, number>;
 }
 
+interface BillingMetrics {
+  today: CostBreakdown;
+  yesterday: CostBreakdown;
+  last7Days: CostBreakdown;
+  last30Days: CostBreakdown;
+  dailyCosts: Array<{ date: string; cost: number; tokens: number }>;
+  averageDailyCost: number;
+  projectedMonthlyCost: number;
+  budgetStatus?: {
+    monthlyBudget?: number;
+    percentUsed?: number;
+    daysRemaining?: number;
+    projectedOverage?: number;
+  };
+}
+
+interface CostBreakdown {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  inputCost: number;
+  outputCost: number;
+  totalCost: number;
+  model: string;
+}
+
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [realtimeStats, setRealtimeStats] = useState<RealtimeStats | null>(null);
   const [dailyMetrics, setDailyMetrics] = useState<DailyMetric[]>([]);
+  const [billingMetrics, setBillingMetrics] = useState<BillingMetrics | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [monthlyBudget, setMonthlyBudget] = useState<number>(50); // Default $50/month budget
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -48,7 +76,7 @@ export default function AdminDashboard() {
       const interval = setInterval(fetchAnalytics, 30000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, monthlyBudget]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +92,7 @@ export default function AdminDashboard() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/analytics?type=all&days=7', {
+      const response = await fetch(`/api/admin/analytics?type=all&days=7&budget=${monthlyBudget}`, {
         headers: {
           'Authorization': `Bearer ${password || localStorage.getItem('admin_auth')}`,
         },
@@ -81,6 +109,7 @@ export default function AdminDashboard() {
       const data = await response.json();
       setRealtimeStats(data.realtime);
       setDailyMetrics(data.daily);
+      setBillingMetrics(data.billing);
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching analytics:', err);
@@ -165,6 +194,133 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Billing & Cost Dashboard */}
+        {billingMetrics && (
+          <>
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800">API Usage & Billing</h2>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-600">Monthly Budget:</label>
+                  <input
+                    type="number"
+                    value={monthlyBudget}
+                    onChange={(e) => setMonthlyBudget(Number(e.target.value))}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                    min="0"
+                    step="10"
+                  />
+                  <span className="text-sm text-gray-600">USD</span>
+                </div>
+              </div>
+
+              {/* Cost Overview Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white">
+                  <div className="text-xs opacity-90 mb-1">Today</div>
+                  <div className="text-2xl font-bold mb-1">${billingMetrics.today.totalCost.toFixed(4)}</div>
+                  <div className="text-xs opacity-75">{billingMetrics.today.totalTokens.toLocaleString()} tokens</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+                  <div className="text-xs opacity-90 mb-1">Last 7 Days</div>
+                  <div className="text-2xl font-bold mb-1">${billingMetrics.last7Days.totalCost.toFixed(3)}</div>
+                  <div className="text-xs opacity-75">{billingMetrics.last7Days.totalTokens.toLocaleString()} tokens</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+                  <div className="text-xs opacity-90 mb-1">Last 30 Days</div>
+                  <div className="text-2xl font-bold mb-1">${billingMetrics.last30Days.totalCost.toFixed(2)}</div>
+                  <div className="text-xs opacity-75">{billingMetrics.last30Days.totalTokens.toLocaleString()} tokens</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
+                  <div className="text-xs opacity-90 mb-1">Projected Monthly</div>
+                  <div className="text-2xl font-bold mb-1">${billingMetrics.projectedMonthlyCost.toFixed(2)}</div>
+                  <div className="text-xs opacity-75">Avg ${billingMetrics.averageDailyCost.toFixed(3)}/day</div>
+                </div>
+              </div>
+
+              {/* Budget Status */}
+              {billingMetrics.budgetStatus && (
+                <div className={`rounded-xl p-4 mb-6 ${
+                  billingMetrics.budgetStatus.percentUsed! > 100
+                    ? 'bg-red-50 border-2 border-red-300'
+                    : billingMetrics.budgetStatus.percentUsed! > 80
+                    ? 'bg-yellow-50 border-2 border-yellow-300'
+                    : 'bg-green-50 border-2 border-green-300'
+                }`}>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-gray-800">Budget Status</h3>
+                    <span className={`text-lg font-bold ${
+                      billingMetrics.budgetStatus.percentUsed! > 100
+                        ? 'text-red-600'
+                        : billingMetrics.budgetStatus.percentUsed! > 80
+                        ? 'text-yellow-600'
+                        : 'text-green-600'
+                    }`}>
+                      {billingMetrics.budgetStatus.percentUsed!.toFixed(1)}% Used
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
+                    <div
+                      className={`h-3 rounded-full transition-all ${
+                        billingMetrics.budgetStatus.percentUsed! > 100
+                          ? 'bg-red-500'
+                          : billingMetrics.budgetStatus.percentUsed! > 80
+                          ? 'bg-yellow-500'
+                          : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(billingMetrics.budgetStatus.percentUsed!, 100)}%` }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-600">Current Spend</div>
+                      <div className="font-bold">${billingMetrics.last30Days.totalCost.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Budget</div>
+                      <div className="font-bold">${billingMetrics.budgetStatus.monthlyBudget!.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Projected Overage</div>
+                      <div className={`font-bold ${billingMetrics.budgetStatus.projectedOverage! > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        ${billingMetrics.budgetStatus.projectedOverage!.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Daily Cost Chart */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3">Daily Costs (Last 30 Days)</h3>
+                <div className="space-y-1 max-h-64 overflow-y-auto">
+                  {billingMetrics.dailyCosts.slice(0, 30).map((day, index) => (
+                    <div key={day.date} className={`flex items-center gap-3 ${index % 2 === 0 ? 'bg-gray-50' : ''} px-2 py-1 rounded`}>
+                      <div className="text-xs text-gray-600 w-24">{new Date(day.date).toLocaleDateString()}</div>
+                      <div className="flex-1">
+                        <div className="bg-blue-100 rounded h-4 relative" style={{ width: '100%' }}>
+                          <div
+                            className="bg-blue-500 rounded h-4 flex items-center justify-end px-2"
+                            style={{
+                              width: `${Math.max((day.cost / Math.max(...billingMetrics.dailyCosts.map(d => d.cost))) * 100, 2)}%`
+                            }}
+                          >
+                            <span className="text-xs text-white font-semibold">${day.cost.toFixed(4)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 w-20 text-right">{day.tokens.toLocaleString()}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Real-time Stats Grid */}
         {realtimeStats && (
