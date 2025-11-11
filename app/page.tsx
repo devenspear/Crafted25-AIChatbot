@@ -202,7 +202,7 @@ export default function ChatPage() {
           <div className="text-center mt-8 px-4">
             <div className="mb-8 p-6 sm:p-8">
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
-                From first pour to final toast, consider me your compass for all things CRAFTED. Tell me a time, a craving, or a curiosity, and I'll guide you to what's happening next—from workshops to signature soirées. Think of me as the festival desk in your pocket, offering clear, CRAFTED-only answers so you can wander more and scroll less.
+                From first pour to final toast, consider me your AI compass for all things CRAFTED. Tell me a time, a craving, or a curiosity, and I'll guide you to what's happening next—from workshops to signature soirées. Think of me as the festival desk in your pocket, offering clear, CRAFTED-only answers so you can wander more and scroll less.
               </p>
             </div>
             <p className="text-gray-600 text-sm sm:text-base mb-4 text-center">
