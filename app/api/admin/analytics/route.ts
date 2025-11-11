@@ -3,7 +3,7 @@ import {
   getDailyMetrics,
   getAnalyticsEvents,
   getSessionMetrics,
-} from '@/lib/analytics';
+} from '@/lib/analytics-kv';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';

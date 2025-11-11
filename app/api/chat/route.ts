@@ -7,7 +7,7 @@ import {
   trackChatRequest,
   trackChatResponse,
   trackError,
-} from '@/lib/analytics';
+} from '@/lib/analytics-kv';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
