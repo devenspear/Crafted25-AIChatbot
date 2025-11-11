@@ -150,25 +150,26 @@ export default function ChatPage() {
   };
 
   const suggestedQuestions = [
-    { emoji: '📅', title: 'Saturday Lineup', subtitle: 'Times & locations for Saturday.', question: "What's on Saturday after 5?" },
-    { emoji: '🍺', title: 'Firkin Fête', subtitle: 'Pours, times, tickets.', question: 'Where is Firkin Fête and when does tapping start?' },
-    { emoji: '✨', title: 'Workshops & Makers', subtitle: 'Hands-on sessions & sign-ups.', question: 'Any workshops on fermentation Sunday?' },
-    { emoji: '🎭', title: 'All Events', subtitle: 'Full festival at a glance.', question: 'Show me the Spirited Soirée details.' },
+    { emoji: '🍺', title: 'Firkin Fête', subtitle: 'Rare cask ales & tastings.', question: 'When is the Firkin Fête and what can I expect?' },
+    { emoji: '🎨', title: 'Holiday Makers Market', subtitle: 'Artisan crafts & gifts.', question: 'Tell me about the Holiday Makers Market schedule' },
+    { emoji: '🍹', title: 'Spirited Soirée', subtitle: 'Cocktails, music & culinary.', question: 'What is the Spirited Soirée?' },
+    { emoji: '📅', title: 'Saturday Events', subtitle: 'Full Saturday schedule.', question: 'What events are happening on Saturday?' },
   ];
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-white overflow-hidden">
       {/* iOS-style Header with glassmorphism - Fixed/Locked */}
       <div
-        className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-3 sticky top-0 z-50"
+        className="backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm px-4 py-3 sticky top-0 z-50 cursor-pointer"
         style={{
           position: '-webkit-sticky',
           WebkitBackfaceVisibility: 'hidden',
           paddingTop: 'max(0.75rem, env(safe-area-inset-top))'
         }}
+        onClick={() => window.location.reload()}
       >
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>CRAFTED AI</h1>
+          <h1 className="font-serif text-center text-gray-900 tracking-tight" style={{ fontFamily: 'Georgia, serif', fontSize: '2rem' }}>CRAFTED CONCIERGE</h1>
           <p className="text-xs text-center text-gray-500 mt-0.5 font-light">Alys Beach, Florida • Nov 12–16</p>
         </div>
       </div>
@@ -199,8 +200,35 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3 max-w-3xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="text-center mt-8 px-4">
-            <div className="mb-8 backdrop-blur-md bg-white/60 rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100/50">
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+            <div className="mb-8 p-6 sm:p-8 relative">
+              <style jsx>{`
+                @keyframes rollingHighlight {
+                  0% {
+                    background-position: 0% 50%;
+                  }
+                  50% {
+                    background-position: 100% 50%;
+                  }
+                  100% {
+                    background-position: 0% 50%;
+                  }
+                }
+                .rolling-highlight {
+                  background: linear-gradient(
+                    90deg,
+                    transparent 0%,
+                    rgba(0, 73, 120, 0.15) 25%,
+                    rgba(0, 73, 120, 0.25) 50%,
+                    rgba(0, 73, 120, 0.15) 75%,
+                    transparent 100%
+                  );
+                  background-size: 200% 100%;
+                  animation: rollingHighlight 3s ease-in-out infinite;
+                  border-radius: 1.5rem;
+                  padding: 1.5rem 2rem;
+                }
+              `}</style>
+              <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto rolling-highlight">
                 Everything <strong>CRAFTED at Alys Beach • Nov 12–16</strong>. Ask for schedules, Firkin Fête, workshops, Spirited Soirée, and insider tips. <strong>CRAFTED-only answers—no outside web.</strong>
               </p>
             </div>
@@ -271,7 +299,7 @@ export default function ChatPage() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isFirstLoad ? "Try something..." : ""}
+                placeholder={isFirstLoad ? "Ask something..." : ""}
                 className="w-full px-4 py-2.5 sm:py-3 rounded-full bg-gray-100/80 border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#004978]/30 focus:border-[#004978]/50 text-gray-900 placeholder-gray-500 text-[16px] transition-all backdrop-blur-sm"
                 disabled={isLoading}
                 autoComplete="off"
