@@ -100,8 +100,15 @@ export async function trackChatRequest(
       queryCategory: categorizeQuery(userQuery),
     };
 
+    console.log('[Analytics] Adding event to sorted set:', {
+      key: EVENTS_KEY,
+      score: event.timestamp,
+      eventType: event.eventType
+    });
+
     // Add event to sorted set with timestamp as score
-    await kv.zadd(EVENTS_KEY, { score: event.timestamp, member: JSON.stringify(event) });
+    const zaddResult = await kv.zadd(EVENTS_KEY, { score: event.timestamp, member: JSON.stringify(event) });
+    console.log('[Analytics] zadd result:', zaddResult);
 
     // Update session metrics
     const sessionKey = `${SESSIONS_KEY}:${sessionId}`;
@@ -125,8 +132,13 @@ export async function trackChatRequest(
 
     await kv.set(sessionKey, updatedSession);
     await kv.expire(sessionKey, 60 * 60 * 24 * 30); // 30 days TTL
+
+    console.log('[Analytics] Chat request tracked successfully');
   } catch (error) {
-    console.error('Error tracking chat request:', error);
+    console.error('[Analytics] Error tracking chat request:', error);
+    if (error instanceof Error) {
+      console.error('[Analytics] Error details:', error.message, error.stack);
+    }
   }
 }
 
@@ -157,8 +169,16 @@ export async function trackChatResponse(
       statusCode: 200,
     };
 
+    console.log('[Analytics] Tracking chat response:', {
+      sessionId,
+      tokens: tokensUsed,
+      responseTime,
+      model: modelUsed
+    });
+
     // Add event to sorted set
-    await kv.zadd(EVENTS_KEY, { score: event.timestamp, member: JSON.stringify(event) });
+    const zaddResult = await kv.zadd(EVENTS_KEY, { score: event.timestamp, member: JSON.stringify(event) });
+    console.log('[Analytics] zadd result for response:', zaddResult);
 
     // Update session metrics
     const sessionKey = `${SESSIONS_KEY}:${sessionId}`;
@@ -168,9 +188,17 @@ export async function trackChatResponse(
       session.totalTokens += tokensUsed.input + tokensUsed.output;
       await kv.set(sessionKey, session);
       await kv.expire(sessionKey, 60 * 60 * 24 * 30); // 30 days TTL
+      console.log('[Analytics] Session updated with token usage');
+    } else {
+      console.warn('[Analytics] Session not found for response tracking:', sessionId);
     }
+
+    console.log('[Analytics] Chat response tracked successfully');
   } catch (error) {
-    console.error('Error tracking chat response:', error);
+    console.error('[Analytics] Error tracking chat response:', error);
+    if (error instanceof Error) {
+      console.error('[Analytics] Error details:', error.message, error.stack);
+    }
   }
 }
 

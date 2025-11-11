@@ -60,28 +60,37 @@ export async function POST(req: Request) {
     const systemPrompt = getSystemPrompt(relevantData);
 
     // Stream response with Claude 3.5 Haiku (fast, cost-effective)
-    const result = await streamText({
+    const result = streamText({
       model: anthropic('claude-3-5-haiku-20241022'),
       system: systemPrompt,
       messages: messages,
       temperature: 0.7,
-    });
+      onFinish: async (event) => {
+        // Track actual token usage after stream completes
+        const responseTime = Date.now() - startTime;
+        // AI SDK uses .inputTokens and .outputTokens
+        const actualInputTokens = event.usage?.inputTokens ?? Math.ceil(systemPrompt.length / 4);
+        const actualOutputTokens = event.usage?.outputTokens ?? 100;
 
-    // Track response metrics (estimate tokens for now)
-    const responseTime = Date.now() - startTime;
-    const estimatedInputTokens = Math.ceil(systemPrompt.length / 4);
-    const estimatedOutputTokens = 100; // Will be more accurate with actual response
+        console.log('[Analytics] Tracking response with actual tokens:', {
+          input: actualInputTokens,
+          output: actualOutputTokens,
+          responseTime,
+          usage: event.usage,
+        });
 
-    await trackChatResponse(
-      sessionId,
-      responseTime,
-      {
-        input: estimatedInputTokens,
-        output: estimatedOutputTokens,
+        await trackChatResponse(
+          sessionId,
+          responseTime,
+          {
+            input: actualInputTokens,
+            output: actualOutputTokens,
+          },
+          'claude-3-5-haiku-20241022',
+          relevantData.length
+        );
       },
-      'claude-3-5-haiku-20241022',
-      relevantData.length
-    );
+    });
 
     // Add session ID to response headers
     const response = result.toTextStreamResponse();
