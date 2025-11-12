@@ -253,26 +253,34 @@ export async function getAnalyticsEvents(
       endDate: new Date(end).toISOString()
     });
 
-    // First check if any events exist at all
+    // Get all events from sorted set and filter by timestamp
+    // Note: zrange returns events in score order (oldest to newest)
     const allEvents = await kv.zrange<string[]>(EVENTS_KEY, 0, -1);
     console.log('[Analytics] Total events in sorted set:', allEvents?.length || 0);
 
-    if (allEvents && allEvents.length > 0) {
-      console.log('[Analytics] Sample event:', allEvents[0].substring(0, 100));
-    }
-
-    // Get events from sorted set by score (timestamp) range
-    const events = await kv.zrange<string[]>(EVENTS_KEY, start, end, {
-      byScore: true,
-    });
-
-    if (!events || events.length === 0) {
-      console.log('[Analytics] No events found in score range:', { start, end });
+    if (!allEvents || allEvents.length === 0) {
+      console.log('[Analytics] No events found in KV');
       return [];
     }
 
-    console.log(`[Analytics] Retrieved ${events.length} events from KV`);
-    return events.map(e => JSON.parse(e) as AnalyticsEvent);
+    if (allEvents.length > 0) {
+      console.log('[Analytics] Sample event:', allEvents[0].substring(0, 100));
+    }
+
+    // Parse and filter events by timestamp range
+    const parsedEvents = allEvents
+      .map(e => {
+        try {
+          return JSON.parse(e) as AnalyticsEvent;
+        } catch (err) {
+          console.error('[Analytics] Failed to parse event:', e.substring(0, 100));
+          return null;
+        }
+      })
+      .filter((e): e is AnalyticsEvent => e !== null && e.timestamp >= start && e.timestamp <= end);
+
+    console.log(`[Analytics] Retrieved ${parsedEvents.length} events in range from ${allEvents.length} total`);
+    return parsedEvents;
   } catch (error) {
     console.error('Error getting analytics events:', error);
     return [];
