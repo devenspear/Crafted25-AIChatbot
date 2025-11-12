@@ -83,6 +83,46 @@ interface UserMetrics {
   conversionRate: number;
 }
 
+interface DeviceAnalytics {
+  device: {
+    deviceTypes: Record<string, number>;
+    browsers: Record<string, number>;
+    operatingSystems: Record<string, number>;
+    screenSizes: Record<string, number>;
+    touchVsDesktop: {
+      touch: number;
+      desktop: number;
+    };
+    pixelRatios: Record<string, number>;
+  };
+  location: {
+    timezones: Record<string, number>;
+    languages: Record<string, number>;
+    topTimezones: Array<{ timezone: string; count: number; percentage: number }>;
+    topLanguages: Array<{ language: string; count: number; percentage: number }>;
+  };
+  performance: {
+    avgPageLoadTime?: number;
+    connectionTypes: Record<string, number>;
+    effectiveTypes: Record<string, number>;
+    avgDownlink?: number;
+    avgRtt?: number;
+    saveDataUsers: number;
+    totalUsers: number;
+  };
+  summary: {
+    totalSessions: number;
+    mobilePercentage: number;
+    tabletPercentage: number;
+    desktopPercentage: number;
+    topDevice: string;
+    topBrowser: string;
+    topOS: string;
+    topTimezone: string;
+    topLanguage: string;
+  };
+}
+
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -91,6 +131,7 @@ export default function AdminDashboard() {
   const [dailyMetrics, setDailyMetrics] = useState<DailyMetric[]>([]);
   const [billingMetrics, setBillingMetrics] = useState<BillingMetrics | null>(null);
   const [userMetrics, setUserMetrics] = useState<UserMetrics | null>(null);
+  const [deviceAnalytics, setDeviceAnalytics] = useState<DeviceAnalytics | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [monthlyBudget, setMonthlyBudget] = useState<number>(50); // Default $50/month budget
@@ -137,6 +178,7 @@ export default function AdminDashboard() {
       setDailyMetrics(data.daily);
       setBillingMetrics(data.billing);
       setUserMetrics(data.users);
+      setDeviceAnalytics(data.device);
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching analytics:', err);
@@ -226,6 +268,210 @@ export default function AdminDashboard() {
         {realtimeStats && realtimeStats.categoryBreakdown && Object.keys(realtimeStats.categoryBreakdown).length > 0 && (
           <div className="mb-6">
             <PieChart data={realtimeStats.categoryBreakdown} title="Query Category Breakdown" />
+          </div>
+        )}
+
+        {/* Device, Browser & Location Analytics */}
+        {deviceAnalytics && deviceAnalytics.summary.totalSessions > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Device & Location Analytics</h2>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-slate-100 to-blue-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Mobile</div>
+                <div className="text-3xl font-bold text-blue-700">{deviceAnalytics.summary.mobilePercentage}%</div>
+                <div className="text-xs text-blue-600">of sessions</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-slate-100 to-purple-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Tablet</div>
+                <div className="text-3xl font-bold text-purple-700">{deviceAnalytics.summary.tabletPercentage}%</div>
+                <div className="text-xs text-purple-600">of sessions</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-slate-100 to-emerald-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Desktop</div>
+                <div className="text-3xl font-bold text-emerald-700">{deviceAnalytics.summary.desktopPercentage}%</div>
+                <div className="text-xs text-emerald-600">of sessions</div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Top Browser</div>
+                <div className="text-xl font-bold text-slate-700">{deviceAnalytics.summary.topBrowser}</div>
+                <div className="text-xs text-slate-600">{deviceAnalytics.device.browsers[deviceAnalytics.summary.topBrowser] || 0} users</div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Top OS</div>
+                <div className="text-xl font-bold text-slate-700">{deviceAnalytics.summary.topOS}</div>
+                <div className="text-xs text-slate-600">{deviceAnalytics.device.operatingSystems[deviceAnalytics.summary.topOS] || 0} users</div>
+              </div>
+            </div>
+
+            {/* Device Types, Browsers, OS Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {/* Device Types */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Device Types</h3>
+                <div className="space-y-2">
+                  {Object.entries(deviceAnalytics.device.deviceTypes)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([device, count]) => (
+                      <div key={device} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                        <span className="text-sm text-gray-700 capitalize">{device}</span>
+                        <span className="text-lg font-bold text-[#004978]">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Browsers */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Browsers</h3>
+                <div className="space-y-2">
+                  {Object.entries(deviceAnalytics.device.browsers)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([browser, count]) => (
+                      <div key={browser} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                        <span className="text-sm text-gray-700">{browser}</span>
+                        <span className="text-lg font-bold text-[#004978]">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Operating Systems */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Operating Systems</h3>
+                <div className="space-y-2">
+                  {Object.entries(deviceAnalytics.device.operatingSystems)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([os, count]) => (
+                      <div key={os} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                        <span className="text-sm text-gray-700">{os}</span>
+                        <span className="text-lg font-bold text-[#004978]">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Location Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Top Timezones */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Top Timezones</h3>
+                <div className="space-y-2">
+                  {deviceAnalytics.location.topTimezones.slice(0, 5).map((tz) => (
+                    <div key={tz.timezone} className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-gray-700">{tz.timezone}</span>
+                        <span className="text-sm font-bold text-[#004978]">{tz.count}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full"
+                          style={{ width: `${tz.percentage}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{tz.percentage.toFixed(1)}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Languages */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Top Languages</h3>
+                <div className="space-y-2">
+                  {deviceAnalytics.location.topLanguages.slice(0, 5).map((lang) => (
+                    <div key={lang.language} className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-gray-700">{lang.language}</span>
+                        <span className="text-sm font-bold text-[#004978]">{lang.count}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-emerald-500 h-2 rounded-full"
+                          style={{ width: `${lang.percentage}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{lang.percentage.toFixed(1)}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Metrics */}
+            {(deviceAnalytics.performance.avgPageLoadTime || Object.keys(deviceAnalytics.performance.connectionTypes).length > 0) && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Performance & Network</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {deviceAnalytics.performance.avgPageLoadTime && (
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Avg Page Load</div>
+                      <div className="text-2xl font-bold text-slate-700">{Math.round(deviceAnalytics.performance.avgPageLoadTime)}ms</div>
+                      <div className="text-xs text-slate-600 mt-1">Load time</div>
+                    </div>
+                  )}
+
+                  {deviceAnalytics.performance.avgDownlink && (
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Avg Downlink</div>
+                      <div className="text-2xl font-bold text-slate-700">{deviceAnalytics.performance.avgDownlink.toFixed(1)} Mbps</div>
+                      <div className="text-xs text-slate-600 mt-1">Network speed</div>
+                    </div>
+                  )}
+
+                  {deviceAnalytics.performance.avgRtt && (
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Avg RTT</div>
+                      <div className="text-2xl font-bold text-slate-700">{Math.round(deviceAnalytics.performance.avgRtt)}ms</div>
+                      <div className="text-xs text-slate-600 mt-1">Round-trip time</div>
+                    </div>
+                  )}
+
+                  {deviceAnalytics.performance.saveDataUsers > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Data Saver</div>
+                      <div className="text-2xl font-bold text-slate-700">{deviceAnalytics.performance.saveDataUsers}</div>
+                      <div className="text-xs text-slate-600 mt-1">Users with data saver</div>
+                    </div>
+                  )}
+
+                  {Object.keys(deviceAnalytics.performance.connectionTypes).length > 0 && (
+                    <div className="col-span-2 bg-gray-50 rounded-lg p-4">
+                      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Connection Types</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(deviceAnalytics.performance.connectionTypes).map(([type, count]) => (
+                          <div key={type} className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 capitalize">{type}</span>
+                            <span className="text-sm font-bold text-gray-800">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {Object.keys(deviceAnalytics.performance.effectiveTypes).length > 0 && (
+                    <div className="col-span-2 bg-gray-50 rounded-lg p-4">
+                      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Effective Connection Types</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(deviceAnalytics.performance.effectiveTypes).map(([type, count]) => (
+                          <div key={type} className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600 uppercase">{type}</span>
+                            <span className="text-sm font-bold text-gray-800">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

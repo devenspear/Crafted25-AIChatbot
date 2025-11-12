@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import SettingsMenu, { Theme, FontSize } from '@/components/SettingsMenu';
-import { getUserId, incrementUserMessageCount } from '@/lib/user-tracking';
+import { getUserId, incrementUserMessageCount, getUserProfile } from '@/lib/user-tracking';
 
 type Message = {
   id: string;
@@ -116,6 +116,9 @@ export default function ChatPage() {
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
+      // Get user profile for device context
+      const userProfile = getUserProfile();
+
       console.log('[UI] Sending fetch to /api/chat...');
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -127,6 +130,9 @@ export default function ChatPage() {
           })),
           sessionId: sessionId,
           userId: userId, // Include user ID for tracking
+          device: userProfile?.device,
+          location: userProfile?.location,
+          performance: userProfile?.performance,
         }),
         signal: abortControllerRef.current.signal,
       });

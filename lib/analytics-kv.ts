@@ -4,6 +4,7 @@
  */
 
 import { kv, isKVAvailable } from './kv-client';
+import type { DeviceInfo, LocationInfo, PerformanceInfo } from './user-tracking';
 
 export interface AnalyticsEvent {
   timestamp: number;
@@ -21,6 +22,10 @@ export interface AnalyticsEvent {
   errorDetails?: string;
   statusCode?: number;
   relevantChunks?: number;
+  // Enhanced context
+  device?: DeviceInfo;
+  location?: LocationInfo;
+  performance?: PerformanceInfo;
 }
 
 export interface SessionMetrics {
@@ -86,7 +91,10 @@ export function categorizeQuery(query: string): string {
 export async function trackChatRequest(
   sessionId: string,
   userQuery: string,
-  userId?: string
+  userId?: string,
+  device?: DeviceInfo,
+  location?: LocationInfo,
+  performance?: PerformanceInfo
 ): Promise<void> {
   if (!kv || !isKVAvailable) {
     console.warn('[Analytics] KV not available, skipping tracking');
@@ -101,6 +109,9 @@ export async function trackChatRequest(
       eventType: 'chat_request',
       userQuery,
       queryCategory: categorizeQuery(userQuery),
+      device,
+      location,
+      performance,
     };
 
     console.log('[Analytics] Adding event to sorted set:', {
