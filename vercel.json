@@ -9,8 +9,7 @@
         }
       ],
       "destination": "https://craftedai.web0101.com/:path*",
-      "permanent": false,
-      "statusCode": 302
+      "permanent": false
     }
   ],
   "headers": [
