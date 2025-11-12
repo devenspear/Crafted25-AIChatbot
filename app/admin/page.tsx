@@ -58,6 +58,31 @@ interface CostBreakdown {
   model: string;
 }
 
+interface UserMetrics {
+  uniqueUsers: {
+    today: number;
+    last7Days: number;
+    last30Days: number;
+    allTime: number;
+  };
+  newVsReturning: {
+    newUsers: number;
+    returningUsers: number;
+    returnRate: number;
+  };
+  engagement: {
+    avgSessionsPerUser: number;
+    avgMessagesPerUser: number;
+    activeUsers24h: number;
+  };
+  retention: {
+    dayOne: number;
+    dayThree: number;
+    daysSeven: number;
+  };
+  conversionRate: number;
+}
+
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -65,6 +90,7 @@ export default function AdminDashboard() {
   const [realtimeStats, setRealtimeStats] = useState<RealtimeStats | null>(null);
   const [dailyMetrics, setDailyMetrics] = useState<DailyMetric[]>([]);
   const [billingMetrics, setBillingMetrics] = useState<BillingMetrics | null>(null);
+  const [userMetrics, setUserMetrics] = useState<UserMetrics | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [monthlyBudget, setMonthlyBudget] = useState<number>(50); // Default $50/month budget
@@ -110,6 +136,7 @@ export default function AdminDashboard() {
       setRealtimeStats(data.realtime);
       setDailyMetrics(data.daily);
       setBillingMetrics(data.billing);
+      setUserMetrics(data.users);
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching analytics:', err);
@@ -195,7 +222,240 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Billing & Cost Dashboard */}
+        {/* Pie Chart for Query Categories */}
+        {realtimeStats && realtimeStats.categoryBreakdown && Object.keys(realtimeStats.categoryBreakdown).length > 0 && (
+          <div className="mb-6">
+            <PieChart data={realtimeStats.categoryBreakdown} title="Query Category Breakdown" />
+          </div>
+        )}
+
+        {/* User Metrics Section */}
+        {userMetrics && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">User Analytics</h2>
+
+            {/* Unique Users Grid */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Unique Visitors</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-slate-100 to-blue-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Today</div>
+                  <div className="text-3xl font-bold text-blue-700">{userMetrics.uniqueUsers.today}</div>
+                  <div className="text-xs text-blue-600">Active users</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-slate-100 to-emerald-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Last 7 Days</div>
+                  <div className="text-3xl font-bold text-emerald-700">{userMetrics.uniqueUsers.last7Days}</div>
+                  <div className="text-xs text-emerald-600">Unique visitors</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-slate-100 to-purple-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Last 30 Days</div>
+                  <div className="text-3xl font-bold text-purple-700">{userMetrics.uniqueUsers.last30Days}</div>
+                  <div className="text-xs text-purple-600">Monthly users</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-slate-100 to-indigo-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">All Time</div>
+                  <div className="text-3xl font-bold text-indigo-700">{userMetrics.uniqueUsers.allTime}</div>
+                  <div className="text-xs text-indigo-600">Total users</div>
+                </div>
+              </div>
+            </div>
+
+            {/* New vs Returning Users */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">User Acquisition (Last 30 Days)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">New Users</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.newVsReturning.newUsers}</div>
+                  <div className="text-xs text-slate-600 mt-1">First-time visitors</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Returning Users</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.newVsReturning.returningUsers}</div>
+                  <div className="text-xs text-slate-600 mt-1">Came back</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Return Rate</div>
+                  <div className="text-2xl font-bold text-emerald-700">{userMetrics.newVsReturning.returnRate}%</div>
+                  <div className="text-xs text-emerald-600 mt-1">User retention</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Engagement Metrics */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Engagement (Last 30 Days)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Avg Sessions/User</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.engagement.avgSessionsPerUser}</div>
+                  <div className="text-xs text-slate-600 mt-1">Session frequency</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Avg Messages/User</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.engagement.avgMessagesPerUser}</div>
+                  <div className="text-xs text-slate-600 mt-1">Interaction depth</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Active Users (24h)</div>
+                  <div className="text-2xl font-bold text-blue-700">{userMetrics.engagement.activeUsers24h}</div>
+                  <div className="text-xs text-blue-600 mt-1">Recent activity</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Retention & Conversion */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Retention & Conversion</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Day 1 Retention</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.retention.dayOne}</div>
+                  <div className="text-xs text-slate-600 mt-1">Returned next day</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Day 3 Retention</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.retention.dayThree}</div>
+                  <div className="text-xs text-slate-600 mt-1">Returned in 3 days</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Day 7 Retention</div>
+                  <div className="text-2xl font-bold text-slate-700">{userMetrics.retention.daysSeven}</div>
+                  <div className="text-xs text-slate-600 mt-1">Weekly retention</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Conversion Rate</div>
+                  <div className="text-2xl font-bold text-emerald-700">{userMetrics.conversionRate}%</div>
+                  <div className="text-xs text-emerald-600 mt-1">Sent messages</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Real-time Stats Grid */}
+        {realtimeStats && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <StatCard
+                title="Active Sessions"
+                value={realtimeStats.activeSessions}
+                subtitle="Last hour"
+                color="blue"
+              />
+              <StatCard
+                title="Total Sessions"
+                value={realtimeStats.totalSessions}
+                subtitle="All time"
+                color="green"
+              />
+              <StatCard
+                title="Total Messages"
+                value={realtimeStats.totalMessages}
+                subtitle="Last 24 hours"
+                color="purple"
+              />
+              <StatCard
+                title="Avg Response"
+                value={`${realtimeStats.avgResponseTime}ms`}
+                subtitle="Response time"
+                color="orange"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <StatCard
+                title="Error Rate"
+                value={`${realtimeStats.errorRate}%`}
+                subtitle={`${realtimeStats.errorCount} errors`}
+                color="red"
+              />
+              <StatCard
+                title="Total Tokens"
+                value={realtimeStats.totalTokens.toLocaleString()}
+                subtitle="Last 24 hours"
+                color="indigo"
+              />
+              <StatCard
+                title="Messages/Hour"
+                value={realtimeStats.lastHour.messages}
+                subtitle="Last hour"
+                color="teal"
+              />
+              <StatCard
+                title="Hourly Sessions"
+                value={realtimeStats.lastHour.sessions}
+                subtitle="Active now"
+                color="pink"
+              />
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Query Categories (24h)</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(realtimeStats.categoryBreakdown).map(([category, count]) => (
+                  <div key={category} className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-[#004978]">{count}</div>
+                    <div className="text-sm text-gray-600 capitalize">{category}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Daily Metrics Table */}
+        {dailyMetrics.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Daily Performance (7 Days)</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Sessions</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Messages</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Tokens (In)</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Tokens (Out)</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Avg Time</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Errors</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyMetrics.map((metric, index) => (
+                    <tr key={metric.date} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
+                      <td className="py-3 px-4 text-gray-700">{new Date(metric.date).toLocaleDateString()}</td>
+                      <td className="py-3 px-4 text-right text-gray-700">{metric.totalSessions}</td>
+                      <td className="py-3 px-4 text-right text-gray-700">{metric.totalMessages}</td>
+                      <td className="py-3 px-4 text-right text-gray-700">{metric.totalTokensInput.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right text-gray-700">{metric.totalTokensOutput.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right text-gray-700">{Math.round(metric.avgResponseTime)}ms</td>
+                      <td className="py-3 px-4 text-right">
+                        <span className={metric.errorCount > 0 ? 'text-red-600 font-semibold' : 'text-gray-700'}>
+                          {metric.errorCount}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Billing & Cost Dashboard - Moved to Bottom */}
         {billingMetrics && (
           <>
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
@@ -311,11 +571,11 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <div className="text-gray-600">Current Spend</div>
-                      <div className="font-bold">${billingMetrics.last30Days.totalCost.toFixed(2)}</div>
+                      <div className="font-bold text-gray-800">${billingMetrics.last30Days.totalCost.toFixed(2)}</div>
                     </div>
                     <div>
                       <div className="text-gray-600">Budget</div>
-                      <div className="font-bold">${billingMetrics.budgetStatus.monthlyBudget!.toFixed(2)}</div>
+                      <div className="font-bold text-gray-800">${billingMetrics.budgetStatus.monthlyBudget!.toFixed(2)}</div>
                     </div>
                     <div>
                       <div className="text-gray-600">Projected Overage</div>
@@ -353,124 +613,6 @@ export default function AdminDashboard() {
               </div>
             </div>
           </>
-        )}
-
-        {/* Pie Chart for Query Categories */}
-        {realtimeStats && realtimeStats.categoryBreakdown && Object.keys(realtimeStats.categoryBreakdown).length > 0 && (
-          <div className="mb-6">
-            <PieChart data={realtimeStats.categoryBreakdown} title="Query Category Breakdown" />
-          </div>
-        )}
-
-        {/* Real-time Stats Grid */}
-        {realtimeStats && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatCard
-                title="Active Sessions"
-                value={realtimeStats.activeSessions}
-                subtitle="Last hour"
-                color="blue"
-              />
-              <StatCard
-                title="Total Sessions"
-                value={realtimeStats.totalSessions}
-                subtitle="All time"
-                color="green"
-              />
-              <StatCard
-                title="Total Messages"
-                value={realtimeStats.totalMessages}
-                subtitle="Last 24 hours"
-                color="purple"
-              />
-              <StatCard
-                title="Avg Response"
-                value={`${realtimeStats.avgResponseTime}ms`}
-                subtitle="Response time"
-                color="orange"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatCard
-                title="Error Rate"
-                value={`${realtimeStats.errorRate}%`}
-                subtitle={`${realtimeStats.errorCount} errors`}
-                color="red"
-              />
-              <StatCard
-                title="Total Tokens"
-                value={realtimeStats.totalTokens.toLocaleString()}
-                subtitle="Last 24 hours"
-                color="indigo"
-              />
-              <StatCard
-                title="Messages/Hour"
-                value={realtimeStats.lastHour.messages}
-                subtitle="Last hour"
-                color="teal"
-              />
-              <StatCard
-                title="Hourly Sessions"
-                value={realtimeStats.lastHour.sessions}
-                subtitle="Active now"
-                color="pink"
-              />
-            </div>
-
-            {/* Category Breakdown */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Query Categories (24h)</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(realtimeStats.categoryBreakdown).map(([category, count]) => (
-                  <div key={category} className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-[#004978]">{count}</div>
-                    <div className="text-sm text-gray-600 capitalize">{category}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Daily Metrics Table */}
-        {dailyMetrics.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Daily Performance (7 Days)</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Sessions</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Messages</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Tokens (In)</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Tokens (Out)</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Avg Time</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Errors</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dailyMetrics.map((metric, index) => (
-                    <tr key={metric.date} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                      <td className="py-3 px-4">{new Date(metric.date).toLocaleDateString()}</td>
-                      <td className="py-3 px-4 text-right">{metric.totalSessions}</td>
-                      <td className="py-3 px-4 text-right">{metric.totalMessages}</td>
-                      <td className="py-3 px-4 text-right">{metric.totalTokensInput.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right">{metric.totalTokensOutput.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right">{Math.round(metric.avgResponseTime)}ms</td>
-                      <td className="py-3 px-4 text-right">
-                        <span className={metric.errorCount > 0 ? 'text-red-600 font-semibold' : ''}>
-                          {metric.errorCount}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         )}
 
         {/* Footer */}
