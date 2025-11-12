@@ -69,9 +69,14 @@ export async function GET(req: NextRequest) {
         first_items: firstItems,
         first_items_parsed: firstItems?.map(item => {
           try {
-            return JSON.parse(item);
+            const itemStr = typeof item === 'string' ? item : JSON.stringify(item);
+            return JSON.parse(itemStr);
           } catch {
-            return { error: 'parse_failed', raw: item?.substring(0, 100) };
+            return {
+              error: 'parse_failed',
+              type: typeof item,
+              raw: typeof item === 'string' ? item.substring(0, 100) : String(item).substring(0, 100)
+            };
           }
         }),
       },
