@@ -90,6 +90,14 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
+        {/* Redirect craftedai.deven.network to craftedai.web0101.com */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            if (window.location.hostname === 'craftedai.deven.network') {
+              window.location.replace('https://craftedai.web0101.com' + window.location.pathname + window.location.search + window.location.hash);
+            }
+          `
+        }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
