@@ -17,6 +17,7 @@ export const runtime = 'nodejs';
  * Returns comprehensive analytics data for the admin dashboard
  *
  * Security: Rate limited (5 req/min) + Bearer token authentication
+ * Requires ADMIN_PASSWORD environment variable
  */
 export async function GET(req: NextRequest) {
   try {
