@@ -12,6 +12,7 @@ const ALLOWED_DOMAINS = [
   'axios.com', 'politico.com', 'theatlantic.com', 'newyorker.com', 'medium.com',
   'substack.com', 'mit.edu', 'stanford.edu', 'harvard.edu', 'nature.com', 'science.org',
   'arxiv.org', 'acm.org', 'ieee.org', 'sciencedirect.com', 'springer.com', 'wiley.com',
+  'businessinsider.com', 'emarketer.com', 'tipranks.com',
   // Alys Beach specific
   'alysbeach.com', 'craftedatbeach.com'
 ];
