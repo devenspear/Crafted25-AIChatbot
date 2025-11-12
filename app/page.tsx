@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import SettingsMenu, { Theme, FontSize } from '@/components/SettingsMenu';
+import { getUserId, incrementUserMessageCount } from '@/lib/user-tracking';
 
 type Message = {
   id: string;
@@ -16,6 +17,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
   const [fontSize, setFontSize] = useState<FontSize>('medium');
@@ -59,8 +61,13 @@ export default function ChatPage() {
     localStorage.setItem('crafted_fontSize', fontSize);
   }, [fontSize]);
 
-  // Initialize session ID
+  // Initialize user ID and session ID
   useEffect(() => {
+    // Get or create unique user ID (persists across sessions)
+    const userIdFromStorage = getUserId();
+    setUserId(userIdFromStorage);
+
+    // Get or create session ID (temporary for this tab/session)
     const existingSessionId = sessionStorage.getItem('crafted_session_id');
     if (existingSessionId) {
       setSessionId(existingSessionId);
@@ -119,9 +126,13 @@ export default function ChatPage() {
             content: m.content,
           })),
           sessionId: sessionId,
+          userId: userId, // Include user ID for tracking
         }),
         signal: abortControllerRef.current.signal,
       });
+
+      // Track user message
+      incrementUserMessageCount();
 
       console.log('[UI] Response received, status:', response.status);
       console.log('[UI] Response headers:', Object.fromEntries(response.headers.entries()));

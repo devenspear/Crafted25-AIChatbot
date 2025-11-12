@@ -8,6 +8,7 @@ import { kv, isKVAvailable } from './kv-client';
 export interface AnalyticsEvent {
   timestamp: number;
   sessionId: string;
+  userId?: string; // Unique user ID for tracking returning users
   eventType: 'chat_request' | 'chat_response' | 'error' | 'session_start';
   userQuery?: string;
   queryCategory?: string;
@@ -84,7 +85,8 @@ export function categorizeQuery(query: string): string {
  */
 export async function trackChatRequest(
   sessionId: string,
-  userQuery: string
+  userQuery: string,
+  userId?: string
 ): Promise<void> {
   if (!kv || !isKVAvailable) {
     console.warn('[Analytics] KV not available, skipping tracking');
@@ -95,6 +97,7 @@ export async function trackChatRequest(
     const event: AnalyticsEvent = {
       timestamp: Date.now(),
       sessionId,
+      userId,
       eventType: 'chat_request',
       userQuery,
       queryCategory: categorizeQuery(userQuery),
@@ -150,7 +153,8 @@ export async function trackChatResponse(
   responseTime: number,
   tokensUsed: { input: number; output: number },
   modelUsed: string,
-  relevantChunks: number
+  relevantChunks: number,
+  userId?: string
 ): Promise<void> {
   if (!kv || !isKVAvailable) {
     console.warn('[Analytics] KV not available, skipping tracking');
@@ -161,6 +165,7 @@ export async function trackChatResponse(
     const event: AnalyticsEvent = {
       timestamp: Date.now(),
       sessionId,
+      userId,
       eventType: 'chat_response',
       responseTime,
       tokensUsed,

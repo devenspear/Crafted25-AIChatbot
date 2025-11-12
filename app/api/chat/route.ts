@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   let sessionId = '';
 
   try {
-    const { messages, sessionId: clientSessionId } = await req.json();
+    const { messages, sessionId: clientSessionId, userId } = await req.json();
 
     // Use client session ID or generate new one
     sessionId = clientSessionId || generateSessionId();
@@ -47,9 +47,9 @@ export async function POST(req: Request) {
       ? lastMessage.content
       : '';
 
-    // Track the chat request
-    console.log('[Analytics] Tracking request:', { sessionId, query: userQuery.substring(0, 50) });
-    await trackChatRequest(sessionId, userQuery);
+    // Track the chat request with user ID
+    console.log('[Analytics] Tracking request:', { sessionId, userId, query: userQuery.substring(0, 50) });
+    await trackChatRequest(sessionId, userQuery, userId);
     console.log('[Analytics] Request tracked successfully');
 
     // Smart search: Only retrieve relevant event data (5KB vs 78KB)
@@ -87,7 +87,8 @@ export async function POST(req: Request) {
             output: actualOutputTokens,
           },
           'claude-3-5-haiku-20241022',
-          relevantData.length
+          relevantData.length,
+          userId
         );
       },
     });

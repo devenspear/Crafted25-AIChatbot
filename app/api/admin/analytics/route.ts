@@ -5,6 +5,7 @@ import {
   getSessionMetrics,
 } from '@/lib/analytics-kv';
 import { getBillingMetrics, getCostEfficiencyMetrics } from '@/lib/analytics-billing';
+import { getUserMetrics } from '@/lib/analytics-users';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -64,12 +65,17 @@ export async function GET(req: NextRequest) {
         data = await getCostEfficiencyMetrics(days);
         break;
 
+      case 'users':
+        data = await getUserMetrics();
+        break;
+
       case 'all':
         data = {
           realtime: await getRealTimeStats(),
           daily: await getDailyMetrics(days),
           sessions: await getSessionMetrics(),
           billing: await getBillingMetrics(monthlyBudget),
+          users: await getUserMetrics(),
         };
         break;
 
