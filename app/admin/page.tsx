@@ -215,30 +215,63 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Cost Overview Cards */}
+              {/* Cost Overview Cards - Muted Colors */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white">
-                  <div className="text-xs opacity-90 mb-1">Today</div>
-                  <div className="text-2xl font-bold mb-1">${billingMetrics.today.totalCost.toFixed(4)}</div>
-                  <div className="text-xs opacity-75">{billingMetrics.today.totalTokens.toLocaleString()} tokens</div>
+                <div className="bg-gradient-to-br from-slate-100 to-emerald-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Today</div>
+                  <div className="text-2xl font-bold mb-1 text-emerald-700">${billingMetrics.today.totalCost.toFixed(4)}</div>
+                  <div className="text-xs text-emerald-600">{billingMetrics.today.totalTokens.toLocaleString()} tokens</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
-                  <div className="text-xs opacity-90 mb-1">Last 7 Days</div>
-                  <div className="text-2xl font-bold mb-1">${billingMetrics.last7Days.totalCost.toFixed(3)}</div>
-                  <div className="text-xs opacity-75">{billingMetrics.last7Days.totalTokens.toLocaleString()} tokens</div>
+                <div className="bg-gradient-to-br from-slate-100 to-blue-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Last 7 Days</div>
+                  <div className="text-2xl font-bold mb-1 text-blue-700">${billingMetrics.last7Days.totalCost.toFixed(3)}</div>
+                  <div className="text-xs text-blue-600">{billingMetrics.last7Days.totalTokens.toLocaleString()} tokens</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
-                  <div className="text-xs opacity-90 mb-1">Last 30 Days</div>
-                  <div className="text-2xl font-bold mb-1">${billingMetrics.last30Days.totalCost.toFixed(2)}</div>
-                  <div className="text-xs opacity-75">{billingMetrics.last30Days.totalTokens.toLocaleString()} tokens</div>
+                <div className="bg-gradient-to-br from-slate-100 to-purple-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Last 30 Days</div>
+                  <div className="text-2xl font-bold mb-1 text-purple-700">${billingMetrics.last30Days.totalCost.toFixed(2)}</div>
+                  <div className="text-xs text-purple-600">{billingMetrics.last30Days.totalTokens.toLocaleString()} tokens</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
-                  <div className="text-xs opacity-90 mb-1">Projected Monthly</div>
-                  <div className="text-2xl font-bold mb-1">${billingMetrics.projectedMonthlyCost.toFixed(2)}</div>
-                  <div className="text-xs opacity-75">Avg ${billingMetrics.averageDailyCost.toFixed(3)}/day</div>
+                <div className="bg-gradient-to-br from-slate-100 to-amber-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Projected Monthly</div>
+                  <div className="text-2xl font-bold mb-1 text-amber-700">${billingMetrics.projectedMonthlyCost.toFixed(2)}</div>
+                  <div className="text-xs text-amber-600">Avg ${billingMetrics.averageDailyCost.toFixed(3)}/day</div>
+                </div>
+              </div>
+
+              {/* Enterprise Metrics Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Cost Per Message</div>
+                  <div className="text-2xl font-bold text-slate-700">
+                    ${realtimeStats && billingMetrics.last30Days.totalCost > 0
+                      ? (billingMetrics.last30Days.totalCost / realtimeStats.totalMessages).toFixed(4)
+                      : '0.0000'}
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">Average cost efficiency</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Token Efficiency</div>
+                  <div className="text-2xl font-bold text-slate-700">
+                    {billingMetrics.last30Days.totalTokens > 0
+                      ? `${((billingMetrics.last30Days.outputTokens / billingMetrics.last30Days.totalTokens) * 100).toFixed(1)}%`
+                      : '0%'}
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">Output/Total ratio</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Avg Tokens/Message</div>
+                  <div className="text-2xl font-bold text-slate-700">
+                    {realtimeStats && realtimeStats.totalMessages > 0
+                      ? Math.round(billingMetrics.last30Days.totalTokens / realtimeStats.totalMessages).toLocaleString()
+                      : '0'}
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">Context window usage</div>
                 </div>
               </div>
 
@@ -294,17 +327,17 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Daily Cost Chart */}
+              {/* Daily Cost Chart - Muted Colors */}
               <div>
                 <h3 className="font-semibold text-gray-800 mb-3">Daily Costs (Last 30 Days)</h3>
                 <div className="space-y-1 max-h-64 overflow-y-auto">
                   {billingMetrics.dailyCosts.slice(0, 30).map((day, index) => (
-                    <div key={day.date} className={`flex items-center gap-3 ${index % 2 === 0 ? 'bg-gray-50' : ''} px-2 py-1 rounded`}>
+                    <div key={day.date} className={`flex items-center gap-3 ${index % 2 === 0 ? 'bg-slate-50' : ''} px-2 py-1 rounded`}>
                       <div className="text-xs text-gray-600 w-24">{new Date(day.date).toLocaleDateString()}</div>
                       <div className="flex-1">
-                        <div className="bg-blue-100 rounded h-4 relative" style={{ width: '100%' }}>
+                        <div className="bg-slate-100 rounded h-4 relative" style={{ width: '100%' }}>
                           <div
-                            className="bg-blue-500 rounded h-4 flex items-center justify-end px-2"
+                            className="bg-gradient-to-r from-slate-400 to-slate-500 rounded h-4 flex items-center justify-end px-2"
                             style={{
                               width: `${Math.max((day.cost / Math.max(...billingMetrics.dailyCosts.map(d => d.cost))) * 100, 2)}%`
                             }}
@@ -320,6 +353,13 @@ export default function AdminDashboard() {
               </div>
             </div>
           </>
+        )}
+
+        {/* Pie Chart for Query Categories */}
+        {realtimeStats && realtimeStats.categoryBreakdown && Object.keys(realtimeStats.categoryBreakdown).length > 0 && (
+          <div className="mb-6">
+            <PieChart data={realtimeStats.categoryBreakdown} title="Query Category Breakdown" />
+          </div>
         )}
 
         {/* Real-time Stats Grid */}
@@ -459,22 +499,150 @@ interface StatCardProps {
 }
 
 function StatCard({ title, value, subtitle, color }: StatCardProps) {
+  // Muted, sophisticated color palette with subtle gradients
   const colorClasses = {
-    blue: 'from-blue-500 to-blue-600',
-    green: 'from-green-500 to-green-600',
-    purple: 'from-purple-500 to-purple-600',
-    orange: 'from-orange-500 to-orange-600',
-    red: 'from-red-500 to-red-600',
-    indigo: 'from-indigo-500 to-indigo-600',
-    teal: 'from-teal-500 to-teal-600',
-    pink: 'from-pink-500 to-pink-600',
+    blue: 'from-slate-100 to-blue-50 border-slate-200',
+    green: 'from-slate-100 to-emerald-50 border-slate-200',
+    purple: 'from-slate-100 to-purple-50 border-slate-200',
+    orange: 'from-slate-100 to-amber-50 border-slate-200',
+    red: 'from-slate-100 to-rose-50 border-slate-200',
+    indigo: 'from-slate-100 to-indigo-50 border-slate-200',
+    teal: 'from-slate-100 to-teal-50 border-slate-200',
+    pink: 'from-slate-100 to-pink-50 border-slate-200',
+  };
+
+  const textColors = {
+    blue: 'text-slate-700',
+    green: 'text-emerald-700',
+    purple: 'text-purple-700',
+    orange: 'text-amber-700',
+    red: 'text-rose-700',
+    indigo: 'text-indigo-700',
+    teal: 'text-teal-700',
+    pink: 'text-pink-700',
+  };
+
+  const accentColors = {
+    blue: 'text-slate-600',
+    green: 'text-emerald-600',
+    purple: 'text-purple-600',
+    orange: 'text-amber-600',
+    red: 'text-rose-600',
+    indigo: 'text-indigo-600',
+    teal: 'text-teal-600',
+    pink: 'text-pink-600',
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-2xl shadow-lg p-6 text-white`}>
-      <div className="text-sm opacity-90 mb-1">{title}</div>
-      <div className="text-3xl font-bold mb-1">{value}</div>
-      <div className="text-xs opacity-75">{subtitle}</div>
+    <div className={`bg-gradient-to-br ${colorClasses[color]} border rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6`}>
+      <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">{title}</div>
+      <div className={`text-3xl font-bold mb-1 ${textColors[color]}`}>{value}</div>
+      <div className={`text-sm ${accentColors[color]}`}>{subtitle}</div>
+    </div>
+  );
+}
+
+// Pie Chart Component for Category Breakdown
+function PieChart({ data, title }: { data: Record<string, number>; title: string }) {
+  const entries = Object.entries(data);
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+
+  if (total === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+        <div className="text-center py-8 text-gray-400">No data available</div>
+      </div>
+    );
+  }
+
+  // Calculate percentages and cumulative angles for pie slices
+  const dataWithAngles = entries.map(([key, value], index) => {
+    const percentage = (value / total) * 100;
+    return { key, value, percentage };
+  }).sort((a, b) => b.value - a.value); // Sort by value descending
+
+  // Muted colors for pie chart
+  const pieColors = [
+    '#64748b', // slate
+    '#0ea5e9', // sky
+    '#10b981', // emerald
+    '#f59e0b', // amber
+    '#8b5cf6', // violet
+    '#ec4899', // pink
+    '#14b8a6', // teal
+  ];
+
+  let cumulativePercentage = 0;
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-800 mb-6">{title}</h3>
+      <div className="flex flex-col md:flex-row items-center gap-6">
+        {/* SVG Pie Chart */}
+        <div className="relative w-48 h-48 flex-shrink-0">
+          <svg viewBox="0 0 100 100" className="transform -rotate-90">
+            {dataWithAngles.map((item, index) => {
+              const startPercentage = cumulativePercentage;
+              cumulativePercentage += item.percentage;
+
+              const startAngle = (startPercentage / 100) * 2 * Math.PI;
+              const endAngle = (cumulativePercentage / 100) * 2 * Math.PI;
+
+              const x1 = 50 + 45 * Math.cos(startAngle);
+              const y1 = 50 + 45 * Math.sin(startAngle);
+              const x2 = 50 + 45 * Math.cos(endAngle);
+              const y2 = 50 + 45 * Math.sin(endAngle);
+
+              const largeArcFlag = item.percentage > 50 ? 1 : 0;
+
+              const pathData = [
+                `M 50 50`,
+                `L ${x1} ${y1}`,
+                `A 45 45 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                `Z`
+              ].join(' ');
+
+              return (
+                <path
+                  key={item.key}
+                  d={pathData}
+                  fill={pieColors[index % pieColors.length]}
+                  stroke="white"
+                  strokeWidth="0.5"
+                  className="hover:opacity-80 transition-opacity"
+                />
+              );
+            })}
+          </svg>
+          {/* Center label */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-700">{total}</div>
+              <div className="text-xs text-gray-500">Total</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex-1 space-y-2">
+          {dataWithAngles.map((item, index) => (
+            <div key={item.key} className="flex items-center gap-3">
+              <div
+                className="w-4 h-4 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: pieColors[index % pieColors.length] }}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-gray-700 capitalize truncate">{item.key}</span>
+                  <span className="text-sm font-medium text-gray-900">{item.value}</span>
+                </div>
+                <div className="text-xs text-gray-500">{item.percentage.toFixed(1)}%</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
