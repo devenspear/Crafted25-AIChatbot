@@ -1,5 +1,5 @@
 {
-  "redirects": [
+  "rewrites": [
     {
       "source": "/:path*",
       "has": [
@@ -8,8 +8,7 @@
           "value": "craftedai.deven.network"
         }
       ],
-      "destination": "https://craftedai.web0101.com/:path*",
-      "permanent": true
+      "destination": "/redirect.html"
     }
   ],
   "crons": [
