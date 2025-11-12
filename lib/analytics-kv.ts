@@ -255,31 +255,47 @@ export async function getAnalyticsEvents(
 
     // Get all events from sorted set and filter by timestamp
     // Note: zrange returns events in score order (oldest to newest)
-    const allEvents = await kv.zrange<string[]>(EVENTS_KEY, 0, -1);
+    const allEvents = await kv.zrange(EVENTS_KEY, 0, -1) as unknown[];
     console.log('[Analytics] Total events in sorted set:', allEvents?.length || 0);
+    console.log('[Analytics] First event type:', typeof allEvents?.[0]);
 
     if (!allEvents || allEvents.length === 0) {
       console.log('[Analytics] No events found in KV');
       return [];
     }
 
-    if (allEvents.length > 0) {
-      console.log('[Analytics] Sample event:', allEvents[0].substring(0, 100));
+    // Parse and filter events by timestamp range
+    const parsedEvents: AnalyticsEvent[] = [];
+
+    for (const item of allEvents) {
+      try {
+        // Handle different possible data structures
+        let event: AnalyticsEvent;
+
+        if (typeof item === 'string') {
+          event = JSON.parse(item);
+        } else if (typeof item === 'object' && item !== null) {
+          event = item as AnalyticsEvent;
+        } else {
+          console.warn('[Analytics] Unexpected item type:', typeof item);
+          continue;
+        }
+
+        // Filter by timestamp range
+        if (event.timestamp >= start && event.timestamp <= end) {
+          parsedEvents.push(event);
+        }
+      } catch (err) {
+        console.error('[Analytics] Failed to parse event:', err);
+      }
     }
 
-    // Parse and filter events by timestamp range
-    const parsedEvents = allEvents
-      .map(e => {
-        try {
-          return JSON.parse(e) as AnalyticsEvent;
-        } catch (err) {
-          console.error('[Analytics] Failed to parse event:', e.substring(0, 100));
-          return null;
-        }
-      })
-      .filter((e): e is AnalyticsEvent => e !== null && e.timestamp >= start && e.timestamp <= end);
+    console.log(`[Analytics] Retrieved ${parsedEvents.length} events in range [${new Date(start).toISOString()} to ${new Date(end).toISOString()}] from ${allEvents.length} total`);
 
-    console.log(`[Analytics] Retrieved ${parsedEvents.length} events in range from ${allEvents.length} total`);
+    if (parsedEvents.length > 0) {
+      console.log('[Analytics] Sample parsed event:', JSON.stringify(parsedEvents[0]).substring(0, 150));
+    }
+
     return parsedEvents;
   } catch (error) {
     console.error('Error getting analytics events:', error);
