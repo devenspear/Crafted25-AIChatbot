@@ -145,14 +145,35 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, monthlyBudget]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'ADMINp@ss2025') {
-      setIsAuthenticated(true);
-      setError('');
-      localStorage.setItem('admin_auth', password);
-    } else {
-      setError('Invalid password');
+    setError('');
+    setLoading(true);
+
+    try {
+      // Validate password by making an API call
+      const response = await fetch('/api/admin/analytics?type=realtime', {
+        headers: {
+          'Authorization': `Bearer ${password}`,
+        },
+      });
+
+      if (response.ok) {
+        // Password is correct
+        setIsAuthenticated(true);
+        localStorage.setItem('admin_auth', password);
+        // Fetch full analytics after successful login
+        await fetchAnalytics();
+      } else {
+        // Password is incorrect
+        setError('Invalid password');
+        localStorage.removeItem('admin_auth');
+      }
+    } catch (err) {
+      setError('Failed to verify password. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -187,12 +208,29 @@ export default function AdminDashboard() {
     }
   };
 
-  // Check for saved auth on mount
+  // Check for saved auth on mount by validating with API
   useEffect(() => {
     const savedAuth = localStorage.getItem('admin_auth');
-    if (savedAuth === 'ADMINp@ss2025') {
-      setPassword(savedAuth);
-      setIsAuthenticated(true);
+    if (savedAuth) {
+      // Validate the saved password with the server
+      fetch('/api/admin/analytics?type=realtime', {
+        headers: {
+          'Authorization': `Bearer ${savedAuth}`,
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            setPassword(savedAuth);
+            setIsAuthenticated(true);
+          } else {
+            // Saved auth is invalid, clear it
+            localStorage.removeItem('admin_auth');
+          }
+        })
+        .catch((err) => {
+          console.error('Auth validation error:', err);
+          localStorage.removeItem('admin_auth');
+        });
     }
   }, []);
 
