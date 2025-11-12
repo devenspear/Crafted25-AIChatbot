@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "craftedai.deven.network"
+        }
+      ],
+      "destination": "https://craftedai.web0101.com/:path*",
+      "permanent": true
+    }
+  ]
+}
