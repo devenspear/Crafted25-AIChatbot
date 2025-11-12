@@ -1,5 +1,5 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/:path*",
       "has": [
@@ -8,7 +8,26 @@
           "value": "craftedai.deven.network"
         }
       ],
-      "destination": "/redirect.html"
+      "destination": "https://craftedai.web0101.com/:path*",
+      "permanent": false,
+      "statusCode": 302
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "craftedai.deven.network"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Location",
+          "value": "https://craftedai.web0101.com"
+        }
+      ]
     }
   ],
   "crons": [
