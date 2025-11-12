@@ -720,9 +720,9 @@ function PieChart({ data, title }: { data: Record<string, number>; title: string
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
       <h3 className="text-lg font-semibold text-gray-800 mb-6">{title}</h3>
-      <div className="flex flex-col md:flex-row items-center gap-6">
+      <div className="flex flex-col md:flex-row items-center gap-8">
         {/* SVG Pie Chart */}
-        <div className="relative w-48 h-48 flex-shrink-0">
+        <div className="relative w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
           <svg viewBox="0 0 100 100" className="transform -rotate-90">
             {dataWithAngles.map((item, index) => {
               const startPercentage = cumulativePercentage;
