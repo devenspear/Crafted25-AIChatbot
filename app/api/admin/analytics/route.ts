@@ -8,20 +8,39 @@ import { getBillingMetrics, getCostEfficiencyMetrics } from '@/lib/analytics-bil
 import { getUserMetrics } from '@/lib/analytics-users';
 import { getDeviceAnalytics } from '@/lib/analytics-device';
 import { NextRequest } from 'next/server';
+import { adminRateLimit, getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 /**
  * Admin Analytics API Endpoint
  * Returns comprehensive analytics data for the admin dashboard
+ *
+ * Security: Rate limited (5 req/min) + Bearer token authentication
  */
 export async function GET(req: NextRequest) {
   try {
-    // Simple authentication check
+    // Security: Rate limiting (5 requests/minute per IP)
+    const clientIP = getClientIP(req);
+    const rateLimitResponse = await checkRateLimit(adminRateLimit, clientIP);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
+    // Security: Authentication check (environment variable only)
     const authHeader = req.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'ADMINp@ss2025';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      console.error('[Admin API] ADMIN_PASSWORD environment variable not set');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!authHeader || authHeader !== `Bearer ${adminPassword}`) {
+      console.warn('[Admin API] Unauthorized access attempt from IP:', clientIP);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },

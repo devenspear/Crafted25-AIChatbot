@@ -1,5 +1,5 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
+import { streamText, generateText } from 'ai';
 import { searchEventData } from '@/lib/rag-search';
 import { getSystemPrompt } from '@/lib/system-prompt';
 import {
@@ -8,6 +8,7 @@ import {
   trackChatResponse,
   trackError,
 } from '@/lib/analytics-kv';
+import { chatRateLimit, getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -17,16 +18,43 @@ export async function POST(req: Request) {
   let sessionId = '';
 
   try {
-    const { messages, sessionId: clientSessionId, userId, device, location, performance } = await req.json();
+    // Security: Rate limiting (20 requests/minute per IP)
+    const clientIP = getClientIP(req);
+    const rateLimitResponse = await checkRateLimit(chatRateLimit, clientIP);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
+    const { messages, sessionId: clientSessionId, userId, device, location, performance, newsletterMode } = await req.json();
 
     // Use client session ID or generate new one
     sessionId = clientSessionId || generateSessionId();
 
+    // Security: Input validation
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Messages must be an array' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // Security: Limit number of messages to prevent context exhaustion
+    if (messages.length > 50) {
+      return new Response(JSON.stringify({ error: 'Too many messages (max 50)' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Security: Validate message content length
+    for (const message of messages) {
+      const content = typeof message.content === 'string' ? message.content : '';
+      if (content.length > 10000) {
+        return new Response(JSON.stringify({ error: 'Message too long (max 10,000 characters)' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -41,6 +69,62 @@ export async function POST(req: Request) {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
+    // Newsletter mode: Return complete text (non-streaming) for batch processing
+    if (newsletterMode) {
+      console.log('[Newsletter API] Processing in newsletter mode - BYPASSING ANALYTICS');
+      console.log('[Newsletter API] Processing in newsletter mode');
+      console.log('[Newsletter API] Message length:', messages[0]?.content?.length ?? 0);
+
+      try {
+        const result = await generateText({
+          model: anthropic('claude-3-5-sonnet-20241022'), // Use Sonnet for better analysis
+          messages: messages,
+          temperature: 0.3, // Lower temperature for more consistent formatting
+        });
+
+        console.log('[Newsletter API] Claude response received');
+        console.log('[Newsletter API] Response length:', result.text.length);
+        console.log('[Newsletter API] First 200 chars:', result.text.substring(0, 200));
+
+        const responseTime = Date.now() - startTime;
+
+        // Track analytics (don't let this fail the request)
+        try {
+          await trackChatResponse(
+            sessionId,
+            responseTime,
+            {
+              input: result.usage?.inputTokens ?? 0,
+              output: result.usage?.outputTokens ?? 0,
+            },
+            'claude-3-5-sonnet-20241022',
+            0,
+            userId
+          );
+        } catch (analyticsError) {
+          console.error('[Newsletter API] Analytics tracking failed:', analyticsError);
+        }
+
+        return new Response(JSON.stringify({ content: result.text }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Session-ID': sessionId,
+          },
+        });
+      } catch (claudeError) {
+        console.error('[Newsletter API] Claude API error:', claudeError);
+        return new Response(JSON.stringify({
+          error: 'Claude API failed',
+          details: claudeError instanceof Error ? claudeError.message : 'Unknown error'
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // Regular chat mode - with RAG and analytics
     // RAG: Extract user's last message to search relevant data
     const lastMessage = messages[messages.length - 1];
     const userQuery = typeof lastMessage.content === 'string'

@@ -11,5 +11,11 @@
       "destination": "https://craftedai.web0101.com/:path*",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 3 * * *"
+    }
   ]
 }

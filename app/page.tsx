@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import SettingsMenu, { Theme, FontSize } from '@/components/SettingsMenu';
 import { getUserId, incrementUserMessageCount, getUserProfile } from '@/lib/user-tracking';
 
@@ -466,7 +467,13 @@ export default function ChatPage() {
             <p className={`text-[9px] mt-1 ${
               theme === 'dark' ? 'text-gray-600' : 'text-gray-300'
             }`}>
-              v{version} • Claude 3.5 Haiku
+              v{version} • Claude 3.5 Haiku •{' '}
+              <Link
+                href="/privacy"
+                className="hover:underline"
+              >
+                Privacy Policy
+              </Link>
             </p>
           </div>
         </form>

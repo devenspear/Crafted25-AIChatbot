@@ -1,18 +1,37 @@
 import { kv, isKVAvailable } from '@/lib/kv-client';
 import { NextRequest } from 'next/server';
+import { adminRateLimit, getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 /**
  * Diagnostics endpoint to test KV connection and environment variables
+ *
+ * Security: Rate limited (5 req/min) + Bearer token authentication
  */
 export async function GET(req: NextRequest) {
   try {
-    // Check auth
+    // Security: Rate limiting
+    const clientIP = getClientIP(req);
+    const rateLimitResponse = await checkRateLimit(adminRateLimit, clientIP);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
+    // Security: Authentication check (environment variable only)
     const authHeader = req.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'ADMINp@ss2025';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      console.error('[Admin Diagnostics] ADMIN_PASSWORD environment variable not set');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!authHeader || authHeader !== `Bearer ${adminPassword}`) {
+      console.warn('[Admin Diagnostics] Unauthorized access attempt from IP:', clientIP);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
