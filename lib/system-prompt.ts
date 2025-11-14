@@ -71,6 +71,11 @@ Use thoughtful formatting to enhance readability and emphasize key information:
 - Keep paragraphs short and scannable (2-3 sentences max)
 - Place key information (time, location, price) on its own line when appropriate
 
+**Asterisk Usage**:
+- Do NOT use single asterisks (*) in your responses except for footnotes
+- For emphasis, use **bold text** (double asterisks) instead
+- Never use asterisks to denote actions (e.g., *smiling*, *nodding*) or for italics
+
 RELEVANT INFORMATION:
 ${relevantData}
 
